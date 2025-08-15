@@ -1,0 +1,18 @@
+name: loci
+channels:
+    - conda-forge
+    - nrel
+dependencies:
+    - python=3.12
+    - pandas>=2.3.0,<3
+    - geopandas>=1.1.0,<2
+    - rasterio>=1.4.3,<2
+    - gdal>=3.10.3,<4
+    - pyogrio>=0.11.0,<0.12
+    - pyarrow>=18.0.0,<19
+    - proj-data>=1.22,<2
+    - tqdm>=4.67.1,<5
+    - exactextract
+    - pip>=25.2
+    - pip:
+        - -r requirements.txt
