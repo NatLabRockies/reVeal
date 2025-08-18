@@ -3,10 +3,12 @@
 config module
 """
 from typing import Optional
+import warnings
 
 from pydantic import (
     BaseModel,
     field_validator,
+    model_validator,
     FilePath,
     DirectoryPath,
     constr,
@@ -120,8 +122,34 @@ class Characterization(BaseModelStrict):
             )
         return value
 
-    # @field_validator("attribute")
-    # def has_attribute(cls, value):
+    @model_validator(mode="after")
+    def attribute_check(self):
+        """
+        Check that attribute is provided for required methods and warn if attribute
+        is provided for methods where it doesn't apply.
+
+        Raises
+        ------
+        ValueError
+            A ValueError will be raised if attribute is missing for a required method.
+        """
+        method_info = VALID_CHARACTERIZATION_METHODS.get(self.method)
+        if method_info is None or method_info.get("attribute_required") is None:
+            raise ValueError(
+                "Missing information required to determine if attribute is required "
+                f"for the specified method {self.method}"
+            )
+        attribute_required = method_info.get("attribute_required")
+        if attribute_required and self.attribute is None:
+            raise ValueError(
+                f"attribute was not provided, but is required for method {self.method}"
+            )
+        if not attribute_required and self.attribute:
+            warnings.warn(
+                f"attribute specified but will not be applied for {self.method}"
+            )
+
+        return self
 
 
 class CharacterizeConfig(BaseModelStrict):
