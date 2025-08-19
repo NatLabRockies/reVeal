@@ -134,4 +134,9 @@ dmypy.json
 # visual studio
 .vscode/
 
+# gaps files
 .gaps/
+
+# geopackage wal etc.
+*.gpkg-shm
+*.gpkg-wal
