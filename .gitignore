@@ -137,6 +137,7 @@ dmypy.json
 # gaps files
 .gaps/
 
-# geopackage wal etc.
+#  extra files created by qgis
 *.gpkg-shm
 *.gpkg-wal
+*.tif.aux.xml
