@@ -2,9 +2,10 @@
 """cli.characterize module - Sets up characterize command for use with nrel-gaps CLI"""
 import logging
 import json
-
+from pydantic import ValidationError
 from gaps.cli import as_click_command, CLICommandFromFunction
 
+from loci.config import CharacterizeConfig
 from loci.log import get_logger, remove_streamhandlers
 
 LOGGER = logging.getLogger(__name__)
@@ -49,7 +50,16 @@ def _preprocessor(config, job_name, log_directory, verbose):
     get_logger(
         __name__, log_level=log_level, out_path=log_directory / f"{job_name}.log"
     )
-    # TODO: verify config inputs
+    LOGGER.info("Validating input configuration file")
+    try:
+        CharacterizeConfig(**config)
+    except ValidationError as e:
+        LOGGER.error(
+            "Configuration did not pass validation. "
+            f"The following issues were identified:\n{e}"
+        )
+        raise e
+    LOGGER.info("Input configuration file is valid.")
     _log_inputs(config)
 
     return config

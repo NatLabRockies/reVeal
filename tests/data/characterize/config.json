@@ -1,5 +1,61 @@
 {
   "data_dir": "",
   "grid": "",
-  "characterizations": {}
+  "characterizations": {
+    "generator_count": {
+      "dset": "vectors/generators.gpkg",
+      "method": "feature count"
+    },
+    "generator_mwh": {
+      "dset": "vectors/generators.gpkg",
+      "method": "sum attribute",
+      "attribute": "net_generation_megawatthours"
+    },
+    "tline_length": {
+      "dset": "vectors/tlines.gpkg",
+      "method": "sum length"
+    },
+    "tline_voltage_length": {
+      "dset": "vectors/tlines.gpkg",
+      "method": "sum attribute-length",
+      "attribute": "VOLTAGE"
+    },
+    "fttp_coverage_area": {
+      "dset": "vectors/fiber_to_the_premises.gpkg",
+      "method": "sum area"
+    },
+    "fttp_average_speed": {
+      "dset": "vectors/fiber_to_the_premises.gpkg",
+      "method": "area-weighted attribute average",
+      "attribute": "max_advertised_upload_speed"
+    },
+    "fttp_coverage_pct": {
+      "dset": "vectors/fiber_to_the_premises.gpkg",
+      "method": "percent covered"
+    },
+    "fttp_sum_speed": {
+      "dset": "vectors/fiber_to_the_premises.gpkg",
+      "method": "area-apportioned attribute sum",
+      "attribute": "max_advertised_upload_speed"
+    },
+    "avg_dist_to_lh_fiber": {
+      "dset": "rasters/fiber_lines_onshore_proximity.tif",
+      "method": "mean"
+    },
+    "med_dist_to_lh_fiber": {
+      "dset": "rasters/fiber_lines_onshore_proximity.tif",
+      "method": "median"
+    },
+    "sum_dist_to_lh_fiber": {
+      "dset": "rasters/fiber_lines_onshore_proximity.tif",
+      "method": "sum"
+    },
+    "developable_area": {
+      "dset": "rasters/developable.tif",
+      "method": "area"
+    }
+  },
+  "expressions": {
+    "developable_capacity": "developable_area * 10"
+  }
 }
