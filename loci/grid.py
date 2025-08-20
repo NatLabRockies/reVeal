@@ -3,6 +3,7 @@ Create demand curve grid and logic for characterizing the demand curve grid.
 """
 from functools import cached_property
 from pathlib import Path
+import warnings
 
 from exactextract.exact_extract import exact_extract
 import geopandas as gpd
@@ -11,14 +12,54 @@ from libpysal import graph
 import rasterio as rio
 from shapely.geometry import box
 from shapely.ops import unary_union
+import numpy as np
 
-from large_loads_2025 import HPC_REV_DATA, HPC_LARGE_LOAD_DATA
+
+def create_grid(res, xmin, ymin, xmax, ymax, crs):
+    """
+    Create a regularly spaced grid at the specified resolution covering the
+    specified bounds.
+
+    Parameters
+    ----------
+    res : float
+        Resolution of the grid (i.e., size of each grid cell along one dimension)
+        measured in units of the specified CRS.
+    xmin : float
+        Minimum x coordinate of bounding box.
+    ymin : float
+        Minimum y coordinate of bounding box.
+    xmax : float
+        Maximum x coordinate of bounding box.
+    ymax : float
+        Maximum y coordinate of bounding box.
+    crs : str
+        Coordinate reference system (CRS) of grid_resolution and bounds. Will also
+        be assigned to the returned GeoDataFrame.
+
+    Returns
+    -------
+    geopandas.GeoDataFrame
+        GeoDataFrame containing the resulting grid.
+    """
+
+    grid_df = gpd.GeoDataFrame(
+        geometry=[
+            box(x, y, x + res, y + res)
+            for x in np.arange(xmin, xmax, res)
+            for y in np.arange(ymin, ymax, res)
+        ],
+        crs=crs,
+    )
+    grid_df["grid_id"] = grid_df.index
+
+    return grid_df
 
 
 class DemandCurveGrid:
     """Methods for building a demand-curve table."""
 
-    def __init__(self, grid_size, crs, bounds=None, template=None):
+    def __init__(self, res=None, bounds=None, crs=None, template=None):
         """Initialize a DemandCurve grid object.
 
         Parameters
@@ -32,13 +73,29 @@ class DemandCurveGrid:
         template : str, optional
             Path to a template file for the grid, by default None
         """
-        self.grid_size = grid_size
-        self.crs = crs
-        self.grid = None
-        self.bounds = bounds if bounds else None
-        self.template = template if template else None
-        self.bounds = self._get_bounds() if template else None
-        self.grid = self.create_grid() if (bounds or template) else None
+        if not template:
+            if res is None or crs is None or bounds is None:
+                raise ValueError(
+                    "If template is not provided, grid_size, crs, and bounds must be "
+                    "specified."
+                )
+            self.grid = create_grid(res, *bounds, crs)
+        else:
+            if res is not None:
+                warnings.warn(
+                    "res specified but template provided. res will be ignored."
+                )
+
+            grid = gpd.read_file(template)
+            if crs:
+                grid.to_crs(inplace=True)
+            if bounds:
+                bounds_box = box(**bounds)
+                self.grid = grid[grid.intersect(bounds_box)].copy()
+            else:
+                self.grid = grid
+
+        self.crs = self.grid.crs
 
     def __repr__(self):
         """Return DemandCurveGrid object representation string."""
@@ -50,42 +107,6 @@ class DemandCurveGrid:
         msgs = [f"\n   {k}={v}" for k, v in items.items()]
         msg = " ".join(msgs)
         return f"<{name} object at {address}> {msg}"
-
-    def _get_bounds(self):
-        """Get the bounds for the grid."""
-        ext = Path(self.template).suffix.lower()
-        if ext in [".gpkg", ".geojson", ".shp"]:
-            bounds = gpd.read_file(self.template).total_bounds
-        elif ext in [".tif"]:
-            with rio.open(self.template) as src:
-                bounds = src.bounds
-        else:
-            raise ValueError(f"Unsupported file type: {ext}")
-        return bounds
-
-    def create_grid(self):
-        """Create a grid based on bounds.
-
-        Returns
-        -------
-        gpd.GeoDataFrame
-            A GeoDataFrame representing the grid.
-        """
-        bounds: tuple[float, float, float, float] = (
-            self.bounds if self.bounds is not None else self._get_bounds()
-        )
-        minx, miny, maxx, maxy = bounds
-
-        self.grid = gpd.GeoDataFrame(
-            geometry=[
-                box(x, y, x + self.grid_size, y + self.grid_size)
-                for x in range(int(minx), int(maxx), self.grid_size)
-                for y in range(int(miny), int(maxy), self.grid_size)
-            ],
-            crs=self.crs,
-        )
-        self.grid["grid_id"] = self.grid.index
-        return self.grid
 
     def _neighbor(self):
         """Create new geometry for grid that consists of its neighbors."""
@@ -129,18 +150,12 @@ class DemandCurveGrid:
     def _vector_length(self, df, grid, stem):
         """Calculate length of vector data within grid cells."""
         inter = gpd.overlay(
-            grid[['grid_id', 'geometry']],
-            df[['geometry']],
-            how='intersection'
+            grid[["grid_id", "geometry"]], df[["geometry"]], how="intersection"
         )
-        inter['seg_length'] = inter.geometry.length
-        length_series = inter.groupby('grid_id')['seg_length'].sum()
+        inter["seg_length"] = inter.geometry.length
+        length_series = inter.groupby("grid_id")["seg_length"].sum()
         col_name = f"length_{stem}"
-        grid[col_name] = (
-            grid['grid_id']
-            .map(length_series)
-            .fillna(0)
-        )
+        grid[col_name] = grid["grid_id"].map(length_series).fillna(0)
         return grid
 
     def _vector_count(self, df, grid, stem):
@@ -168,23 +183,19 @@ class DemandCurveGrid:
     def _vector_intersects(self, df, grid, stem):
         """Flag each grid cell True/False if it intersects any feature."""
         joined = gpd.sjoin(
-            grid[['grid_id', 'geometry']],
-            df[['geometry']],
-            how='left',
-            predicate='intersects'
+            grid[["grid_id", "geometry"]],
+            df[["geometry"]],
+            how="left",
+            predicate="intersects",
         )
 
-        intersects = joined.groupby('grid_id')['index_right'].count()
+        intersects = joined.groupby("grid_id")["index_right"].count()
         col_name = f"intersects_{stem}"
-        grid[col_name] = (grid['grid_id']
-                          .map(intersects)
-                          .fillna(0)
-                          .astype(int) > 0)
+        grid[col_name] = grid["grid_id"].map(intersects).fillna(0).astype(int) > 0
         return grid
 
     def _aggregate_vector_within_grid(
-        self, df_path, value_col=None, agg_func="sum",
-        buffer=None, neighbor=False
+        self, df_path, value_col=None, agg_func="sum", buffer=None, neighbor=False
     ):
         """Aggregate vector data within grid cells.
 
@@ -285,8 +296,7 @@ class DemandCurveGrid:
         return result
 
     def aggregate_within_grid(
-        self, df_path, value_col=None, agg_func="sum",
-        buffer=None, neighbor=False
+        self, df_path, value_col=None, agg_func="sum", buffer=None, neighbor=False
     ):
         """Aggregate data within grid cells.
 
@@ -374,23 +384,20 @@ class DemandCurveGrid:
             neighbor = cfg.get("neighbor", False)
 
             layer = self.aggregate_within_grid(
-                path, value_col=val_col, agg_func=agg,
-                buffer=buf, neighbor=neighbor
+                path, value_col=val_col, agg_func=agg, buffer=buf, neighbor=neighbor
             )
 
-            merge_cols = [
-                c for c in layer.columns if c not in ("geometry", "grid_id")]
-            out = out.merge(layer[["grid_id"] + merge_cols],
-                            on="grid_id", how="left")
+            merge_cols = [c for c in layer.columns if c not in ("geometry", "grid_id")]
+            out = out.merge(layer[["grid_id"] + merge_cols], on="grid_id", how="left")
 
         return out
 
 
-if __name__ == "__main__":
-    temp = HPC_REV_DATA.joinpath("rasters/templates/rev_template_fy25.tif")
-    demand_grid = DemandCurveGrid(grid_size=10_000, crs="EPSG:5070",
-                                  template=str(temp))
-    SPEC_PATH = HPC_LARGE_LOAD_DATA.joinpath(
-        "tables/misc/characterization_layers.csv")
-    spec_dict = demand_grid.csv_to_spec(SPEC_PATH)
-    characterized_grid = demand_grid.characterize_grid(spec_dict)
+# if __name__ == "__main__":
+#     temp = HPC_REV_DATA.joinpath("rasters/templates/rev_template_fy25.tif")
+#     demand_grid = DemandCurveGrid(grid_size=10_000, crs="EPSG:5070",
+#                                   template=str(temp))
+#     SPEC_PATH = HPC_LARGE_LOAD_DATA.joinpath(
+#         "tables/misc/characterization_layers.csv")
+#     spec_dict = demand_grid.csv_to_spec(SPEC_PATH)
+#     characterized_grid = demand_grid.characterize_grid(spec_dict)
