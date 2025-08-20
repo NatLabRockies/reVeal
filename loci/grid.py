@@ -109,7 +109,9 @@ class Grid:
         self.crs = self.grid.crs
 
     def __repr__(self):
-        """Return DemandCurveGrid object representation string."""
+        """
+        Return Grid object representation string.
+        """
         name = self.__class__.__name__
         skip_types = (gpd.geodataframe.GeoDataFrame, pd.core.frame.DataFrame)
         items = self.__dict__.items()
