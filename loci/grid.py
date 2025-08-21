@@ -1,18 +1,36 @@
+# -*- coding: utf-8 -*-
 """
-Create demand curve grid and logic for characterizing the demand curve grid.
+grid module
 """
 from functools import cached_property
 from pathlib import Path
 import warnings
 
-from exactextract.exact_extract import exact_extract
+import pyproj
+import rasterio
+import pyogrio
 import geopandas as gpd
+
+from exactextract.exact_extract import exact_extract
 import pandas as pd
 from libpysal import graph
-import rasterio as rio
 from shapely.geometry import box
 from shapely.ops import unary_union
 import numpy as np
+
+from loci.config import VALID_CHARACTERIZATION_METHODS
+from loci.fileio import (
+    load_characterize_config,
+    get_geom_type_parquet,
+    get_geom_type_pyogrio,
+    get_crs_raster,
+    get_crs_pyogrio,
+    get_crs_parquet,
+)
+
+
+# stop to_crs() bugs
+pyproj.network.set_network_enabled(active=False)
 
 
 def create_grid(res, xmin, ymin, xmax, ymax, crs):
@@ -54,6 +72,78 @@ def create_grid(res, xmin, ymin, xmax, ymax, crs):
     grid_df["grid_id"] = grid_df.index
 
     return grid_df
+
+
+def _characterize_preflight(characterize_config, grid_crs):
+    """
+    Run preflight checks for the Grid.characterize() method. Checks that the input
+    configuration file is valid and converts it to a CharacterizeConfig.
+    It then also checks each input value in the CharacterizeConfig instance to:
+    1. Ensure the specified dataset exists.
+    2. Ensure the CRS of the specified dataset matches the grid CRS.
+    3. Determine the input dataset format and append to the CharacterizeConfig instance.
+    4. Ensure that the
+
+
+    Parameters
+    ----------
+    characterize_config : _type_
+        _description_
+    grid_crs : _type_
+        _description_
+
+    Raises
+    ------
+    FileNotFoundError
+        _description_
+    FileNotFoundError
+        _description_
+    TypeError
+        _description_
+    ValueError
+        _description_
+    """
+    # pylint: disable=protected-access
+
+    config = load_characterize_config(characterize_config)
+
+    data_dir = config.data_dir
+    if not data_dir.exists():
+        raise FileNotFoundError(f"Input data_dir {data_dir} does not exist.")
+
+    for characterization in config.characterizations:
+        dset = characterization.dset
+        dset_src = data_dir / dset
+        if not dset_src.exists():
+            raise FileNotFoundError(f"Input dataset {dset_src} does not exist.")
+
+        dset_ext = dset_src.suffix
+        if dset_ext in rasterio.drivers.raster_driver_extensions():
+            characterization._dset_format = "raster"
+            crs = get_crs_raster(dset_src)
+        elif pyogrio._ogr._get_drivers_for_path(dset):
+            characterization._dset_format = get_geom_type_pyogrio(dset_src)
+            crs = get_crs_pyogrio(dset_src)
+        elif dset_ext == ".parquet":
+            characterization._dset_format = get_geom_type_parquet(dset_src)
+            crs = get_crs_parquet(dset_src)
+        else:
+            raise TypeError(f"Unsupport file format for for {dset_src}.")
+
+        if crs != grid_crs:
+            raise ValueError(
+                f"CRS of input dataset {dset_src} ({crs}) does not match grid CRS "
+                f"({grid_crs})."
+            )
+
+        applicable_types = VALID_CHARACTERIZATION_METHODS.get(
+            characterization.method, []
+        )
+        if characterization._dset_format not in applicable_types:
+            raise ValueError(
+                f"Incompatible method ({characterization.method}) and dataset format "
+                f"({characterization._dset_format}) for dataset {dset_src}"
+            )
 
 
 class Grid:
@@ -289,7 +379,7 @@ class Grid:
         if buffer is not None:
             grid["geometry"] = grid.geometry.buffer(buffer)
 
-        with rio.open(raster_path) as src:
+        with rasterio.open(raster_path) as src:
             grid = grid.to_crs(src.crs)
 
         stem = Path(raster_path).stem
