@@ -8,7 +8,6 @@ import warnings
 
 import pyproj
 import rasterio
-import pyogrio
 import geopandas as gpd
 
 from exactextract.exact_extract import exact_extract
@@ -18,15 +17,7 @@ from shapely.geometry import box
 from shapely.ops import unary_union
 import numpy as np
 
-from loci.config import VALID_CHARACTERIZATION_METHODS
-from loci.fileio import (
-    load_characterize_config,
-    get_geom_type_parquet,
-    get_geom_type_pyogrio,
-    get_crs_raster,
-    get_crs_pyogrio,
-    get_crs_parquet,
-)
+from loci.config import Characterization
 
 
 # stop to_crs() bugs
@@ -72,78 +63,6 @@ def create_grid(res, xmin, ymin, xmax, ymax, crs):
     grid_df["grid_id"] = grid_df.index
 
     return grid_df
-
-
-def _characterize_preflight(characterize_config, grid_crs):
-    """
-    Run preflight checks for the Grid.characterize() method. Checks that the input
-    configuration file is valid and converts it to a CharacterizeConfig.
-    It then also checks each input value in the CharacterizeConfig instance to:
-    1. Ensure the specified dataset exists.
-    2. Ensure the CRS of the specified dataset matches the grid CRS.
-    3. Determine the input dataset format and append to the CharacterizeConfig instance.
-    4. Ensure that the
-
-
-    Parameters
-    ----------
-    characterize_config : _type_
-        _description_
-    grid_crs : _type_
-        _description_
-
-    Raises
-    ------
-    FileNotFoundError
-        _description_
-    FileNotFoundError
-        _description_
-    TypeError
-        _description_
-    ValueError
-        _description_
-    """
-    # pylint: disable=protected-access
-
-    config = load_characterize_config(characterize_config)
-
-    data_dir = config.data_dir
-    if not data_dir.exists():
-        raise FileNotFoundError(f"Input data_dir {data_dir} does not exist.")
-
-    for characterization in config.characterizations:
-        dset = characterization.dset
-        dset_src = data_dir / dset
-        if not dset_src.exists():
-            raise FileNotFoundError(f"Input dataset {dset_src} does not exist.")
-
-        dset_ext = dset_src.suffix
-        if dset_ext in rasterio.drivers.raster_driver_extensions():
-            characterization._dset_format = "raster"
-            crs = get_crs_raster(dset_src)
-        elif pyogrio._ogr._get_drivers_for_path(dset):
-            characterization._dset_format = get_geom_type_pyogrio(dset_src)
-            crs = get_crs_pyogrio(dset_src)
-        elif dset_ext == ".parquet":
-            characterization._dset_format = get_geom_type_parquet(dset_src)
-            crs = get_crs_parquet(dset_src)
-        else:
-            raise TypeError(f"Unsupport file format for for {dset_src}.")
-
-        if crs != grid_crs:
-            raise ValueError(
-                f"CRS of input dataset {dset_src} ({crs}) does not match grid CRS "
-                f"({grid_crs})."
-            )
-
-        applicable_types = VALID_CHARACTERIZATION_METHODS.get(
-            characterization.method, []
-        )
-        if characterization._dset_format not in applicable_types:
-            raise ValueError(
-                f"Incompatible method ({characterization.method}) and dataset format "
-                f"({characterization._dset_format}) for dataset {dset_src}"
-            )
 
 
 class Grid:
@@ -433,39 +352,54 @@ class Grid:
 
         return grid
 
-    def csv_to_spec(self, csv_path):
-        """Convert a CSV file to a specification dictionary.
+    def _characterize_preflight(self, characterizations):
+        """
+        Run preflight checks for the characterizations input dictionary by converting
+        each element to a Characterization instance. It then also checks to ensure the
+        CRS of the specified dataset matches the grid CRS.
 
         Parameters
         ----------
-        csv_path : str
-            Path to the CSV file.
+        characterizations : dict
+            Dictionary of input characterizations, where each key represents
+            an output field named and each value is either a dict or instance of
+            Characterization.
 
         Returns
         -------
         dict
-            A dictionary with the specification.
+            Validated characterization dictionary, with each value converted to a
+            Characterization instance.
+
+        Raises
+        ------
+        ValueError
+            A ValueError will be raised if there is a CRS mismatch between any
+            characterization dataset and the grid.
         """
-        df = pd.read_csv(csv_path)
-        spec = {}
-        for _, row in df.iterrows():
-            path = row["path"]
-            agg = row["operation"]
-            value_col = row.get("value_col", None)
-            buffer = row.get("buffer", None)
-            neighbor = row.get("neighbor", False)
+        for attr_name, char_info in characterizations.items():
+            if not isinstance(char_info, Characterization):
+                if isinstance(char_info, dict):
+                    characterizations[attr_name] = Characterization(**char_info)
+                    char_info = characterizations[attr_name]
+                else:
+                    raise TypeError(
+                        f"Invalid input for characterization {attr_name}. Must be "
+                        "either a dict or an instance of loci.config.Characterization"
+                    )
 
-            spec[Path(path).stem] = {
-                "path": path,
-                "agg": agg,
-                "value_col": value_col,
-                "buffer": buffer,
-                "neighbor": neighbor,
-            }
-        return spec
+            if char_info.crs != self.crs:
+                raise ValueError(
+                    f"CRS of input dataset {char_info.dset_src} "
+                    f"({char_info.crs}) does not match grid CRS "
+                    f"({self.crs})."
+                )
 
-    def characterize_grid(self, spec):
-        """Characterize the grid based on the provided specification.
+        return characterizations
+
+    def characterize(self, characterizations, expressions):
+        """
+        Characterize the grid based on the provided specification.
 
         Parameters
         ----------
@@ -477,30 +411,22 @@ class Grid:
         gpd.GeoDataFrame
             A GeoDataFrame with the characterized grid.
         """
-        out = self.grid.copy()
+        characterizations = self._characterize_preflight(characterizations)
 
-        for _, cfg in spec.items():
-            path = cfg["path"]
-            agg = cfg.get("agg", "sum")
-            buf = cfg.get("buffer", None)
-            val_col = cfg.get("value_col", None)
-            neighbor = cfg.get("neighbor", False)
+        out_grid = self.grid.copy()
+        # for attr_name, char_info in characterizations.items():
+        #     # TODO: start again here
+        #     # layer = self.aggregate_within_grid(
+        #     #     char_info.dset_src,
+        #     #     value_col=val_col,
+        #     #     agg_func=dset.method,
+        #     #     buffer=dset.buffer_distance,
+        #     #     neighbor=dset.neighbor_order,
+        #     # )
 
-            layer = self.aggregate_within_grid(
-                path, value_col=val_col, agg_func=agg, buffer=buf, neighbor=neighbor
-            )
+        #     # merge_cols = [c for c in layer.columns if c not in ("geometry", "grid_id")]
+        #     # out_grid = out_grid.merge(
+        #     #     layer[["grid_id"] + merge_cols], on="grid_id", how="left"
+        #     # )
 
-            merge_cols = [c for c in layer.columns if c not in ("geometry", "grid_id")]
-            out = out.merge(layer[["grid_id"] + merge_cols], on="grid_id", how="left")
-
-        return out
-
-
-# if __name__ == "__main__":
-#     temp = HPC_REV_DATA.joinpath("rasters/templates/rev_template_fy25.tif")
-#     demand_grid = DemandCurveGrid(grid_size=10_000, crs="EPSG:5070",
-#                                   template=str(temp))
-#     SPEC_PATH = HPC_LARGE_LOAD_DATA.joinpath(
-#         "tables/misc/characterization_layers.csv")
-#     spec_dict = demand_grid.csv_to_spec(SPEC_PATH)
-#     characterized_grid = demand_grid.characterize_grid(spec_dict)
+        return out_grid
