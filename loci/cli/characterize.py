@@ -88,6 +88,7 @@ def run(data_dir, grid, characterizations, expressions, max_workers=None, _local
             - "dset": String indicating relative path within data_dir to dataset to be
                 characterized.
             - "method": String indicating characterization method to be performed.
+                Refer to loci.config.VALID_CHARACTERIZATION_METHODS.
             - "attribute": Attribute to summarize. Only required for certain methods.
                 Default is None/null.
             - "apply_exclusions": Boolean indicating whether exclusions should be
@@ -101,6 +102,11 @@ def run(data_dir, grid, characterizations, expressions, max_workers=None, _local
                 input grid dataset. For instance, a value of 500 in CRS EPGS:5070
                 would apply a buffer of 500m to each grid cell before characterization.
                 Optional, default is 0 which does not apply a buffer.
+            - "dset_format": String indicating the format of the input dataset.
+                Optional, if not specified, it will be inferred. If specified, it
+                will be validated. Refer to loci.config.DatasetFormatEnum for valid
+                options. Generally, it is recommend to leave this blank since it will
+                be inferred.
     expressions: dict
         Additional expressions to be calculated. Must be a dictionary keyes by the name
         of the output attribute for each expression. Each value must be a string

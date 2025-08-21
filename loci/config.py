@@ -4,6 +4,7 @@ config module
 """
 from typing import Optional
 import warnings
+from enum import Enum
 
 from pydantic import (
     BaseModel,
@@ -79,6 +80,32 @@ VALID_CHARACTERIZATION_METHODS = {
 }
 
 
+class DatasetFormatEnum(str, Enum):
+    """
+    Enumeration for allowable dataset formats. Case insensitive.
+
+    Raises
+    ------
+    ValueError
+        A ValueError is raised if the input value is not one of the known
+        types when cast to lower case.
+    """
+
+    RASTER = "raster"
+    POINT = "point"
+    LINE = "line"
+    POLYGON = "polygon"
+
+    @classmethod
+    def _missing_(cls, value):
+        if isinstance(value, str):
+            value = value.lower()
+            for member in cls:
+                if member.value == value:
+                    return member
+        raise ValueError(f"{value} is not a valid DatasetFormatEnum")
+
+
 class Characterization(BaseModelStrict):
     """
     Inputs for a single entry in the characterizations config.
@@ -92,6 +119,7 @@ class Characterization(BaseModelStrict):
     apply_exclusions: Optional[StrictBool] = False
     neighbor_order: Optional[NonNegativeInt] = 0.0
     buffer_distance: Optional[float] = 0.0
+    dset_format: Optional[DatasetFormatEnum] = None
 
     @field_validator("method")
     def is_valid_method(cls, value):

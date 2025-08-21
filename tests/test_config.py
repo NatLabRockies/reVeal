@@ -10,6 +10,7 @@ from loci.config import (
     Characterization,
     VALID_CHARACTERIZATION_METHODS,
     CharacterizeConfig,
+    DatasetFormatEnum,
 )
 
 VALID_METHODS_AND_ATTRIBUTES = [
@@ -28,11 +29,39 @@ METHODS_SUPERFLUOUS_ATTRIBUTES = [
 ]
 
 
+@pytest.mark.parametrize(
+    "value,error_expected",
+    [
+        ("raster", False),
+        ("point", False),
+        ("line", False),
+        ("polygon", False),
+        ("RASTER", False),
+        ("POINT", False),
+        ("LINE", False),
+        ("POLYGON", False),
+        ("polygons", True),
+        ("geometry", True),
+        ("vector", True),
+    ],
+)
+def test_datasetformatenum(value, error_expected):
+    """
+    Test for DatasetFormatEnum.
+    """
+    if error_expected:
+        with pytest.raises(ValueError):
+            DatasetFormatEnum(value)
+    else:
+        DatasetFormatEnum(value)
+
+
 @pytest.mark.parametrize("apply_exclusions", [None, True, False])
 @pytest.mark.parametrize("neighbor_order", [None, 0, 1, 50.0])
 @pytest.mark.parametrize("buffer_distance", [None, -100, 100])
+@pytest.mark.parametrize("dset_format", [None, "Raster", "point"])
 def test_characterization_valid_optional_params(
-    apply_exclusions, neighbor_order, buffer_distance
+    apply_exclusions, neighbor_order, buffer_distance, dset_format
 ):
     """
     Test Characterization class with valid inputs for optional parameters.
@@ -45,6 +74,7 @@ def test_characterization_valid_optional_params(
         "apply_exclusions": apply_exclusions,
         "neighbor_order": neighbor_order,
         "buffer_distance": buffer_distance,
+        "dset_format": dset_format,
     }
 
     Characterization(**value)
