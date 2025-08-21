@@ -250,6 +250,22 @@ class Characterization(BaseModelStrict):
 
         return self
 
+    @model_validator(mode="after")
+    def check_method_applicability(self):
+        """
+        Check that the specified method is applicable to the input dset_format.
+        """
+        applicable_types = VALID_CHARACTERIZATION_METHODS.get(self.method, {}).get(
+            "valid_inputs"
+        )
+        if self.dset_format not in applicable_types:
+            raise ValueError(
+                f"Incompatible method ({self.method}) and dataset format "
+                f"({self.dset_format}) for dataset {self.dset_src}"
+            )
+
+        return self
+
 
 class CharacterizeConfig(BaseModelStrict):
     """

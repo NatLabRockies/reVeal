@@ -76,7 +76,7 @@ def test_characterization_valid_optional_params(
     value = {
         "dset": "characterize/vectors/generators.gpkg",
         "data_dir": data_dir,
-        "method": "sum area",
+        "method": "feature count",
         "attribute": None,
         "apply_exclusions": apply_exclusions,
         "neighbor_order": neighbor_order,
@@ -87,22 +87,22 @@ def test_characterization_valid_optional_params(
 
 
 @pytest.mark.parametrize(
-    "dset_name,geom_type",
+    "dset_name,geom_type,method",
     [
-        ("characterize/vectors/generators.gpkg", "point"),
-        ("characterize/vectors/tlines.gpkg", "line"),
-        ("characterize/vectors/fiber_to_the_premises.parquet", "polygon"),
-        ("characterize/rasters/developable.tif", "raster"),
+        ("characterize/vectors/generators.gpkg", "point", "feature count"),
+        ("characterize/vectors/tlines.gpkg", "line", "sum length"),
+        ("characterize/vectors/fiber_to_the_premises.parquet", "polygon", "sum area"),
+        ("characterize/rasters/developable.tif", "raster", "mean"),
     ],
 )
-def test_characterization_dynamic_attributes(data_dir, dset_name, geom_type):
+def test_characterization_dynamic_attributes(data_dir, dset_name, geom_type, method):
     """
     Test Characterization() class correctly populates dynamic properties.
     """
     value = {
         "dset": dset_name,
         "data_dir": data_dir,
-        "method": "sum area",
+        "method": method,
         "attribute": None,
         "apply_exclusions": False,
         "neighbor_order": 0,
@@ -131,8 +131,21 @@ def test_characterization_valid_methods_and_attributes(data_dir, method, attribu
     Test Characterization class with valid combos of methods and attributes.
     """
 
+    geom_type = VALID_CHARACTERIZATION_METHODS.get(method).get("valid_inputs")[0]
+    dset = None
+    if geom_type == "point":
+        dset = "characterize/vectors/generators.gpkg"
+    elif geom_type == "line":
+        dset = "characterize/vectors/tlines.gpkg"
+    elif geom_type == "polygon":
+        dset = "characterize/vectors/fiber_to_the_premises.gpkg"
+    elif geom_type == "raster":
+        dset = "characterize/rasters/fiber_lines_onshore_proximity.tif"
+    else:
+        raise ValueError("Unrecognized geom_type")
+
     value = {
-        "dset": "characterize/vectors/generators.gpkg",
+        "dset": dset,
         "data_dir": data_dir,
         "method": method,
         "attribute": attribute,
@@ -146,7 +159,6 @@ def test_characterization_invalid_methods_and_attributes(data_dir, method, attri
     """
     Test Characterization class with invalid combos of methods and attributes.
     """
-
     value = {
         "dset": "characterize/vectors/generators.gpkg",
         "data_dir": data_dir,
@@ -164,9 +176,22 @@ def test_characterization_superfluous_methods_and_attributes(
     """
     Test Characterization class with invalid combos of methods and attributes.
     """
+    geom_type = VALID_CHARACTERIZATION_METHODS.get(method).get("valid_inputs")[0]
+
+    dset = None
+    if geom_type == "point":
+        dset = "characterize/vectors/generators.gpkg"
+    elif geom_type == "line":
+        dset = "characterize/vectors/tlines.gpkg"
+    elif geom_type == "polygon":
+        dset = "characterize/vectors/fiber_to_the_premises.gpkg"
+    elif geom_type == "raster":
+        dset = "characterize/rasters/fiber_lines_onshore_proximity.tif"
+    else:
+        raise ValueError("Unrecognized geom_type")
 
     value = {
-        "dset": "characterize/vectors/generators.gpkg",
+        "dset": dset,
         "data_dir": data_dir,
         "method": method,
         "attribute": attribute,
