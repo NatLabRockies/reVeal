@@ -11,6 +11,7 @@ from loci.fileio import (
     get_crs_raster,
     get_crs_pyogrio,
     get_crs_parquet,
+    read_vectors,
 )
 
 
@@ -115,6 +116,27 @@ def test_get_crs_parquet(data_dir):
     dset_src = data_dir / "characterize" / "vectors" / "generators.parquet"
     crs = get_crs_parquet(dset_src)
     assert crs == "EPSG:5070", "Unexpected CRS value"
+
+
+@pytest.mark.parametrize(
+    "vector_src,error_expected",
+    [
+        ("rasters/developable.tif", True),
+        ("vectors/generators.gpkg", False),
+        ("vectors/generators.parquet", False),
+    ],
+)
+def test_read_vectors(data_dir, vector_src, error_expected):
+    """
+    Test for read_vectors() for different input file formats.
+    """
+    vector_src_path = data_dir / "characterize" / vector_src
+    if error_expected:
+        with pytest.raises(IOError, match="Unable to read vectors from input file.*"):
+            read_vectors(vector_src_path)
+    else:
+        df = read_vectors(vector_src_path)
+        assert len(df) == 14, "Unexpected row count in GeoDataFrame"
 
 
 if __name__ == "__main__":

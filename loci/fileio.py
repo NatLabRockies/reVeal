@@ -2,13 +2,17 @@
 """
 io module
 """
+from pathlib import Path
+
 import pyogrio
 import rasterio
 import pyproj
+import geopandas as gpd
 from geopandas.io.arrow import (
     _read_parquet_schema_and_metadata,
     _validate_and_decode_metadata,
 )
+from pyogrio._ogr import _get_drivers_for_path
 
 
 GEOMETRY_TYPES = {
@@ -182,3 +186,36 @@ def get_crs_parquet(dset_src):
     authority_code = ":".join(crs.to_authority())
 
     return authority_code
+
+
+def read_vectors(vector_src):
+    """
+    Read vector dataset in GeoParquet or pyogrio-compatible format to GeoDataFrame.
+
+    Parameters
+    ----------
+    vector_src : str
+        Path to vector dataset.
+
+    Returns
+    -------
+    geopandas.GeoDataFrame
+        Returns GeoDataFrame of vectors.
+
+    Raises
+    ------
+    IOError
+        An IOError will be raised if the input dataset is not a supported/recognized
+        vector data format.
+    """
+
+    if Path(vector_src).suffix == ".parquet":
+        return gpd.read_parquet(vector_src)
+
+    if _get_drivers_for_path(vector_src):
+        return gpd.read_file(vector_src)
+
+    raise IOError(
+        f"Unable to read vectors from input file {vector_src}. "
+        "Not a recognized vector format."
+    )
