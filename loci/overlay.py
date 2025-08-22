@@ -7,9 +7,6 @@ and functions dependent on it, the function must be prefixed with "calc_".
 """
 import geopandas as gpd
 
-# import rasterio
-# from exactextract.exact_extract import exact_extract
-
 from loci.fileio import read_vectors
 
 
@@ -54,6 +51,9 @@ def calc_feature_count(zones_df, dset_src, **kwargs):
     return counts_df
 
 
+# Older code, kept temporarily for reference
+# import rasterio
+# from exactextract.exact_extract import exact_extract
 # def _vector_length(self, df, grid, stem):
 #     """Calculate length of vector data within grid cells."""
 #     inter = gpd.overlay(
