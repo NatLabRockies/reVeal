@@ -2,11 +2,14 @@
 """cli.characterize module - Sets up characterize command for use with nrel-gaps CLI"""
 import logging
 import json
+from pathlib import Path
+
 from pydantic import ValidationError
 from gaps.cli import as_click_command, CLICommandFromFunction
 
 from loci.config import CharacterizeConfig
 from loci.log import get_logger, remove_streamhandlers
+from loci.grid import CharacterizeGrid
 
 LOGGER = logging.getLogger(__name__)
 
@@ -50,22 +53,24 @@ def _preprocessor(config, job_name, log_directory, verbose):
     get_logger(
         __name__, log_level=log_level, out_path=log_directory / f"{job_name}.log"
     )
-    LOGGER.info("Validating input configuration file")
-    try:
-        CharacterizeConfig(**config)
-    except ValidationError as e:
-        LOGGER.error(
-            "Configuration did not pass validation. "
-            f"The following issues were identified:\n{e}"
-        )
-        raise e
-    LOGGER.info("Input configuration file is valid.")
+
+    config["_local"] = (
+        config.get("execution_control", {}).get("option", "local") == "local"
+    )
     _log_inputs(config)
 
     return config
 
 
-def run(data_dir, grid, characterizations, expressions, max_workers=None, _local=True):
+def run(
+    data_dir,
+    grid,
+    characterizations,
+    expressions,
+    out_dir,
+    max_workers=None,
+    _local=True,
+):
     """
     Characterize a vector grid based on specified raster and vector datasets.
     Outputs a new GeoPackage containing the input grid with added attributes for the
@@ -107,6 +112,8 @@ def run(data_dir, grid, characterizations, expressions, max_workers=None, _local
         of the output attribute for each expression. Each value must be a string
         indicating the expression to be calculated. Expression strings can reference
         one or more attributes/keys referenced in the characterizations dictionary.
+    out_dir : str
+        Output parent directory. Results will be saved to a filenamed "
     max_workers : [int, NoneType], optional
         Maximum number of workers to use for multiprocessing, by default None, which
         uses all available CPUs.
@@ -123,7 +130,34 @@ def run(data_dir, grid, characterizations, expressions, max_workers=None, _local
     if _local:
         remove_streamhandlers(LOGGER.parent)
 
-    LOGGER.error("This function has not been implemented yet. Exiting.")
+    LOGGER.info("Validating input configuration file")
+    try:
+        config = CharacterizeConfig(
+            data_dir=data_dir,
+            grid=grid,
+            characterizations=characterizations,
+            expressions=expressions,
+        )
+    except ValidationError as e:
+        LOGGER.error(
+            "Configuration did not pass validation. "
+            f"The following issues were identified:\n{e}"
+        )
+        raise e
+    LOGGER.info("Input configuration file is valid.")
+
+    LOGGER.info("Initializing CharacterizeGrid from input config.")
+    characterize_grid = CharacterizeGrid(config)
+    LOGGER.info("Initialization complete.")
+
+    LOGGER.info("Running grid characterization")
+    out_grid_df = characterize_grid.run()
+    LOGGER.info("Grid characterization complete.")
+
+    out_gpkg = Path(out_dir).joinpath("grid_char.gpkg").expanduser()
+    LOGGER.info(f"Saving results to {out_gpkg}.")
+    out_grid_df.to_file(out_gpkg)
+    LOGGER.info("Saving complete.")
 
 
 characterize_cmd = CLICommandFromFunction(
