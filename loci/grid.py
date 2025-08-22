@@ -17,7 +17,7 @@ from shapely.geometry import box
 from shapely.ops import unary_union
 import numpy as np
 
-from loci.config import Characterization
+from loci.config import load_characterize_config
 
 
 # stop to_crs() bugs
@@ -67,7 +67,7 @@ def create_grid(res, xmin, ymin, xmax, ymax, crs):
 
 class Grid:
     """
-    Grid class
+    Grid base class
     """
 
     def __init__(self, res=None, bounds=None, crs=None, template=None):
@@ -99,7 +99,7 @@ class Grid:
                     "If template is not provided, grid_size, crs, and bounds must be "
                     "specified."
                 )
-            self.grid = create_grid(res, *bounds, crs)
+            self.df = create_grid(res, *bounds, crs)
         else:
             if res is not None:
                 warnings.warn(
@@ -111,28 +111,15 @@ class Grid:
                 grid.to_crs(crs, inplace=True)
             if bounds:
                 bounds_box = box(*bounds)
-                self.grid = grid[grid.intersects(bounds_box)].copy()
+                self.df = grid[grid.intersects(bounds_box)].copy()
             else:
-                self.grid = grid
+                self.df = grid
 
-        self.crs = self.grid.crs
-
-    def __repr__(self):
-        """
-        Return Grid object representation string.
-        """
-        name = self.__class__.__name__
-        skip_types = (gpd.geodataframe.GeoDataFrame, pd.core.frame.DataFrame)
-        items = self.__dict__.items()
-        items = {k: v for k, v in items if not isinstance(v, skip_types)}
-        address = hex(id(self))
-        msgs = [f"\n   {k}={v}" for k, v in items.items()]
-        msg = " ".join(msgs)
-        return f"<{name} object at {address}> {msg}"
+        self.crs = self.df.crs
 
     def _neighbor(self):
         """Create new geometry for grid that consists of its neighbors."""
-        grid = self.grid.copy()
+        grid = self.df.copy()
         grid = grid.set_index("grid_id")
         cont = graph.Graph.build_contiguity(grid, rook=False)
         adj = cont.adjacency
@@ -150,14 +137,14 @@ class Grid:
     @cached_property
     def grid_neighbors(self):
         """Cached property: unioned neighbor geometries for each grid cell."""
-        return None if self.grid is None else self._neighbor()
+        return None if self.df is None else self._neighbor()
 
     def _get_grid(self, neighbor=False):
         """Get the grid, optionally with neighbor geometries."""
         if neighbor:
             grid = self.grid_neighbors.copy()
         else:
-            grid = self.grid.copy()
+            grid = self.df.copy()
         return grid
 
     def _vector_proximity(self, df, grid, stem):
@@ -352,81 +339,52 @@ class Grid:
 
         return grid
 
-    def _characterize_preflight(self, characterizations):
+
+class CharacterizeGrid(Grid):
+    """
+    Subclass of Grid for running characterizations.
+    """
+
+    def __init__(self, config):
         """
-        Run preflight checks for the characterizations input dictionary by converting
-        each element to a Characterization instance. It then also checks to ensure the
-        CRS of the specified dataset matches the grid CRS.
+        Initialize grid from configuration.
 
         Parameters
         ----------
-        characterizations : dict
-            Dictionary of input characterizations, where each key represents
-            an output field named and each value is either a dict or instance of
-            Characterization.
-
-        Returns
-        -------
-        dict
-            Validated characterization dictionary, with each value converted to a
-            Characterization instance.
-
-        Raises
-        ------
-        ValueError
-            A ValueError will be raised if there is a CRS mismatch between any
-            characterization dataset and the grid.
+        config : [dict, CharacterizeConfig]
+            Input configuration as either a dictionary or a CharacterizationConfig
+            instance. If a dictionary, validation will be performed to ensure
+            inputs are valid.
         """
-        for attr_name, char_info in characterizations.items():
-            if not isinstance(char_info, Characterization):
-                if isinstance(char_info, dict):
-                    characterizations[attr_name] = Characterization(**char_info)
-                    char_info = characterizations[attr_name]
-                else:
-                    raise TypeError(
-                        f"Invalid input for characterization {attr_name}. Must be "
-                        "either a dict or an instance of loci.config.Characterization"
-                    )
+        config = load_characterize_config(config)
+        super().__init__(template=config.grid)
+        self.config = config
 
-            if char_info.crs != self.crs:
-                raise ValueError(
-                    f"CRS of input dataset {char_info.dset_src} "
-                    f"({char_info.crs}) does not match grid CRS "
-                    f"({self.crs})."
-                )
-
-        return characterizations
-
-    def characterize(self, characterizations, expressions):
+    def run(self):
         """
-        Characterize the grid based on the provided specification.
-
-        Parameters
-        ----------
-        spec : dict
-            A dictionary with the specification.
+        Run grid characterization based on the input configuration.
 
         Returns
         -------
         gpd.GeoDataFrame
             A GeoDataFrame with the characterized grid.
         """
-        characterizations = self._characterize_preflight(characterizations)
-
-        out_grid = self.grid.copy()
+        raise NotImplementedError("characterize() function not yet implemented.")
         # for attr_name, char_info in characterizations.items():
-        #     # TODO: start again here
-        #     # layer = self.aggregate_within_grid(
-        #     #     char_info.dset_src,
-        #     #     value_col=val_col,
-        #     #     agg_func=dset.method,
-        #     #     buffer=dset.buffer_distance,
-        #     #     neighbor=dset.neighbor_order,
-        #     # )
+        #     TODO: start again here
+        #     layer = self.aggregate_within_grid(
+        #         char_info.dset_src,
+        #         value_col=val_col,
+        #         agg_func=dset.method,
+        #         buffer=dset.buffer_distance,
+        #         neighbor=dset.neighbor_order,
+        #     )
 
-        #     # merge_cols = [c for c in layer.columns if c not in ("geometry", "grid_id")]
-        #     # out_grid = out_grid.merge(
-        #     #     layer[["grid_id"] + merge_cols], on="grid_id", how="left"
-        #     # )
+        #     merge_cols = [
+        #         c for c in layer.columns if c not in ("geometry", "grid_id")
+        #     ]
+        #     out_grid = out_grid.merge(
+        #         layer[["grid_id"] + merge_cols], on="grid_id", how="left"
+        #     )
 
-        return out_grid
+        # return out_grid

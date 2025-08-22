@@ -2,10 +2,13 @@
 """
 grid module tests
 """
+import json
+
 import pytest
 import geopandas as gpd
 
-from loci.grid import create_grid, Grid
+from loci.grid import create_grid, Grid, CharacterizeGrid
+from loci.config import CharacterizeConfig
 
 
 @pytest.mark.parametrize(
@@ -82,7 +85,7 @@ def test_init_grid_from_template(data_dir, crs, bounds, res):
         expected_count = 2
     else:
         expected_count = len(template_df)
-    assert len(grid.grid) == expected_count, "Unexpected number of features in grid"
+    assert len(grid.df) == expected_count, "Unexpected number of features in grid"
 
 
 @pytest.mark.parametrize(
@@ -120,10 +123,43 @@ def test_init_grid_from_scratch(data_dir, crs, bounds, res, i):
 
         grid = Grid(crs=crs, bounds=bounds, res=res)
 
-        assert len(grid.grid) == len(
-            expected_df
-        ), "Unexpected number of features in grid"
+        assert len(grid.df) == len(expected_df), "Unexpected number of features in grid"
         assert grid.crs == crs, "Unexpected grid crs"
+
+
+@pytest.mark.parametrize("as_dict", [False, True])
+def test_init_characterizegrid(data_dir, as_dict):
+    """
+    Test that CharacterizeGrid can be initialized from either a dictionary or
+    a CharacterizeConfig.
+    """
+
+    in_config_path = data_dir / "characterize" / "config.json"
+    with open(in_config_path, "r") as f:
+        config_data = json.load(f)
+    config_data["data_dir"] = (data_dir / "characterize").as_posix()
+    config_data["grid"] = (
+        data_dir / "characterize" / "grids" / "grid_1.gpkg"
+    ).as_posix()
+
+    if as_dict:
+        grid = CharacterizeGrid(config_data)
+    else:
+        grid = CharacterizeGrid(CharacterizeConfig(**config_data))
+
+    assert len(grid.df) == 9, "Unexpected row count in grid.df"
+    assert grid.crs == "EPSG:5070", "Unexpected grid.crs"
+    assert isinstance(
+        grid.config, CharacterizeConfig
+    ), "grid.config is not a CharacterizeConfig instance"
+
+
+def test_run_characterizegrid(char_grid):
+    """
+    Test the run() function of CharacterizeGrid.
+    """
+    with pytest.raises(NotImplementedError):
+        char_grid.run()
 
 
 if __name__ == "__main__":
