@@ -17,6 +17,9 @@ from loci.overlay import (
     calc_area_weighted_average,
     calc_area_apportioned_sum,
     zonal_statistic,
+    calc_median,
+    calc_mean,
+    calc_sum,
 )
 
 
@@ -282,13 +285,84 @@ def test_zonal_statistic(data_dir, base_grid, stat, weighted):
     else:
         weights_src = None
 
-    results = zonal_statistic(zones_df, dset_src, weights_src, stat)
+    results = zonal_statistic(zones_df, dset_src, stat=stat, weights_dset=weights_src)
     results_df = pd.concat([zones_df, results], axis=1)
     results_df.reset_index(inplace=True)
 
     expected_results_src = (
         data_dir / "overlays" / f"zonal_{stat}_weighted_{weighted}.gpkg"
     )
+    expected_df = gpd.read_file(expected_results_src)
+
+    assert_geodataframe_equal(results_df, expected_df, check_like=True)
+
+
+def test_calc_median(data_dir, base_grid):
+    """
+    Unit tests for calc_median().
+    """
+
+    zones_df = base_grid.df
+    dset_src = (
+        data_dir / "characterize" / "rasters" / "fiber_lines_onshore_proximity.tif"
+    )
+    results = calc_median(zones_df, dset_src)
+    results_df = pd.concat([zones_df, results], axis=1)
+    results_df.reset_index(inplace=True)
+
+    expected_results_src = data_dir / "overlays" / "zonal_median_weighted_False.gpkg"
+    expected_df = gpd.read_file(expected_results_src)
+
+    assert_geodataframe_equal(results_df, expected_df, check_like=True)
+
+
+@pytest.mark.parametrize("weighted", [True, False])
+def test_calc_mean(data_dir, base_grid, weighted):
+    """
+    Unit tests for calc_mean().
+    """
+
+    zones_df = base_grid.df
+    dset_src = (
+        data_dir / "characterize" / "rasters" / "fiber_lines_onshore_proximity.tif"
+    )
+    if weighted:
+        weights_src = data_dir / "characterize" / "rasters" / "developable.tif"
+    else:
+        weights_src = None
+
+    results = calc_mean(zones_df, dset_src, weights_dset=weights_src)
+    results_df = pd.concat([zones_df, results], axis=1)
+    results_df.reset_index(inplace=True)
+
+    expected_results_src = (
+        data_dir / "overlays" / f"zonal_mean_weighted_{weighted}.gpkg"
+    )
+    expected_df = gpd.read_file(expected_results_src)
+
+    assert_geodataframe_equal(results_df, expected_df, check_like=True)
+
+
+@pytest.mark.parametrize("weighted", [True, False])
+def test_calc_sum(data_dir, base_grid, weighted):
+    """
+    Unit tests for calc_sum().
+    """
+
+    zones_df = base_grid.df
+    dset_src = (
+        data_dir / "characterize" / "rasters" / "fiber_lines_onshore_proximity.tif"
+    )
+    if weighted:
+        weights_src = data_dir / "characterize" / "rasters" / "developable.tif"
+    else:
+        weights_src = None
+
+    results = calc_sum(zones_df, dset_src, weights_dset=weights_src)
+    results_df = pd.concat([zones_df, results], axis=1)
+    results_df.reset_index(inplace=True)
+
+    expected_results_src = data_dir / "overlays" / f"zonal_sum_weighted_{weighted}.gpkg"
     expected_df = gpd.read_file(expected_results_src)
 
     assert_geodataframe_equal(results_df, expected_df, check_like=True)

@@ -448,7 +448,7 @@ def calc_area_apportioned_sum(zones_df, dset_src, attribute, **kwargs):
     return complete_sums_df
 
 
-def zonal_statistic(zones_df, dset_src, weights_dset, stat, **kwargs):
+def zonal_statistic(zones_df, dset_src, stat, weights_dset=None, **kwargs):
     """
     Calculate zonal statistic for the specified statistic.
 
@@ -460,13 +460,13 @@ def zonal_statistic(zones_df, dset_src, weights_dset, stat, **kwargs):
         this is not the case, unexpected results may occur.
     dset_src : str
         Path to input raster dataset to be summarized.
-    weights_dset : str, optional
-        Optional path to datset to use for weights. Note that only some options for
-        stat support use of weights. See stat for more information.
     stat : str
         Zonal statistic to calculate. For valid options and compatability with
         use of weights, see:
         https://isciences.github.io/exactextract/operations.html#built-in-operations.
+    weights_dset : str, optional
+        Optional path to datset to use for weights. Note that only some options for
+        stat support use of weights. See stat for more information.
 
     Returns
     -------
@@ -493,6 +493,87 @@ def zonal_statistic(zones_df, dset_src, weights_dset, stat, **kwargs):
     stats_df.rename(columns={stat: "value"}, inplace=True)
 
     return stats_df
+
+
+def calc_median(zones_df, dset_src, **kwargs):
+    """
+    Calculate zonal median of raster values over the input zones.
+
+    Parameters
+    ----------
+    zones_df : geopandas.GeoDataFrame
+        Input zones dataframe, to which results will be aggregated. This
+        function assumes that the index of zones_df is unique for each feature. If
+        this is not the case, unexpected results may occur.
+    dset_src : str
+        Path to input raster dataset to be summarized.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Returns a pandas DataFrame with a "value" column, representing the
+        median raster value within each zone. The index from the input zones_df is also
+        included.
+    """
+    # pylint: disable=unused-argument
+
+    return zonal_statistic(zones_df, dset_src, stat="median")
+
+
+def calc_mean(zones_df, dset_src, weights_dset, **kwargs):
+    """
+    Calculate zonal mean or weighted mean of raster values over the input zones.
+
+    Parameters
+    ----------
+    zones_df : geopandas.GeoDataFrame
+        Input zones dataframe, to which results will be aggregated. This
+        function assumes that the index of zones_df is unique for each feature. If
+        this is not the case, unexpected results may occur.
+    dset_src : str
+        Path to input raster dataset to be summarized.
+    weights_dset : str, optional
+        Optional path to datset to use for weights. If specified, the mean for each
+        zone will be weighted based on the values in this dataset.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Returns a pandas DataFrame with a "value" column, representing the
+        mean or weighted mean raster value within each zone. The index from the input
+        zones_df is also included.
+    """
+    # pylint: disable=unused-argument
+
+    return zonal_statistic(zones_df, dset_src, stat="mean", weights_dset=weights_dset)
+
+
+def calc_sum(zones_df, dset_src, weights_dset, **kwargs):
+    """
+    Calculate zonal sum or weighted sum of raster values over the input zones.
+
+    Parameters
+    ----------
+    zones_df : geopandas.GeoDataFrame
+        Input zones dataframe, to which results will be aggregated. This
+        function assumes that the index of zones_df is unique for each feature. If
+        this is not the case, unexpected results may occur.
+    dset_src : str
+        Path to input raster dataset to be summarized.
+    weights_dset : str, optional
+        Optional path to datset to use for weights. If specified, the sum for each
+        zone will be weighted based on the values in this dataset.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Returns a pandas DataFrame with a "value" column, representing the
+        sum or weighted sum of raster values within each zone. The index from the input
+        zones_df is also included.
+    """
+    # pylint: disable=unused-argument
+
+    return zonal_statistic(zones_df, dset_src, stat="sum", weights_dset=weights_dset)
 
 
 # "mean",

@@ -200,10 +200,10 @@ def test_run_characterizegrid(char_grid):
         ("percent covered", False),
         ("area-weighted average", False),
         ("area-apportioned sum", False),
+        ("mean", False),
+        ("median", False),
+        ("sum", False),
         # TODO: eventually these should all be changed to False
-        ("mean", True),
-        ("median", True),
-        ("sum", True),
         ("area", True),
     ],
 )
