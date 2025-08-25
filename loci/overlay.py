@@ -6,6 +6,7 @@ Note that to expose methods here for by loci.grid.get_overlay_method() function
 and functions dependent on it, the function must be prefixed with "calc_".
 """
 import geopandas as gpd
+import pandas as pd
 
 from loci.fileio import read_vectors
 
@@ -50,6 +51,67 @@ def calc_feature_count(zones_df, dset_src, **kwargs):
 
     return counts_df
 
+
+def calc_sum_attribute(zones_df, dset_src, attribute, **kwargs):
+    """
+    Calculate the sum of the specified attribute for all features intersecting each
+    zone in input zones dataframe.
+
+    Parameters
+    ----------
+    zones_df : geopandas.GeoDataFrame
+        Input zones dataframe, to which feature counts will be aggregated. This
+        function assumes that the index of zones_df is unique for each feature. If
+        this is not the case, unexpected results may occur.
+    dset_src : str
+        Path to input vector dataset with attribute to be summed. Must be in the same
+        CRS as the zones_df.
+    attribute : str
+        Name of attribute in dset_src to sum.
+    **kwargs :
+        Arbitrary keyword arguments. Note that none of these are used, but this
+        allows passing an arbitrary dictionary that includes both used and unused
+        parameters as input to the function.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Returns a pandas DataFrame with a "value" column, representing the sum
+        of the attribute of features in each zone. The index from the input zones_df is
+        also included.
+    """
+    # pylint: disable=unused-argument
+
+    features_df = read_vectors(dset_src)
+    if attribute not in features_df.columns:
+        raise KeyError(f"attribute {attribute} not a column in {dset_src}")
+
+    if not pd.api.types.is_numeric_dtype(features_df[attribute]):
+        raise TypeError("attribute {attribute} in {dset_src} must be numeric")
+
+    join_df = gpd.sjoin(
+        zones_df[["geometry"]],
+        features_df[["geometry", attribute]],
+        how="left",
+        predicate="intersects",
+    )
+    sums_df = join_df.groupby(by=join_df.index)[[attribute]].sum()
+    sums_df[attribute] = sums_df[attribute].fillna(0).astype(sums_df[attribute].dtype)
+    sums_df.rename(columns={attribute: "value"}, inplace=True)
+
+    return sums_df
+
+
+# "sum length",
+# "sum attribute-length",
+# "sum area",
+# "area-weighted attribute average",
+# "percent covered",
+# "area-apportioned attribute sum",
+# "mean",
+# "median",
+# "sum",
+# "area",
 
 # Older code, kept temporarily for reference
 # import rasterio

@@ -7,7 +7,7 @@ from geopandas.testing import assert_geodataframe_equal
 import pandas as pd
 import geopandas as gpd
 
-from loci.overlay import calc_feature_count
+from loci.overlay import calc_feature_count, calc_sum_attribute
 
 
 def test_calc_feature_count(data_dir, base_grid):
@@ -25,6 +25,36 @@ def test_calc_feature_count(data_dir, base_grid):
     expected_df = gpd.read_file(expected_results_src)
 
     assert_geodataframe_equal(results_df, expected_df, check_like=True)
+
+
+@pytest.mark.parametrize(
+    "attribute,exception_type",
+    [
+        ("net_generation_megawatthours", None),
+        ("utility_name", TypeError),
+        ("not_a_column", KeyError),
+    ],
+)
+def test_calc_sum_attribute(data_dir, base_grid, attribute, exception_type):
+    """
+    Check that calc_feature_count() returns correct results per grid cell.
+    """
+    zones_df = base_grid.df
+    dset_src = data_dir / "characterize" / "vectors" / "generators.gpkg"
+
+    if exception_type:
+        with pytest.raises(exception_type):
+            calc_sum_attribute(zones_df, dset_src, attribute)
+    else:
+        results = calc_sum_attribute(zones_df, dset_src, attribute)
+
+        results_df = pd.concat([zones_df, results], axis=1)
+        results_df.reset_index(inplace=True)
+
+        expected_results_src = data_dir / "overlays" / "feature_sum_results.gpkg"
+        expected_df = gpd.read_file(expected_results_src)
+
+        assert_geodataframe_equal(results_df, expected_df, check_like=True)
 
 
 if __name__ == "__main__":

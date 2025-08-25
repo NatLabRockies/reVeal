@@ -193,8 +193,8 @@ def test_run_characterizegrid(char_grid):
         ("feature count", False),
         ("featurecount", True),
         ("Feature-Count", False),
+        ("sum attribute", False),
         # TODO: eventually these should all be changed to False
-        ("sum attribute", True),
         ("sum length", True),
         ("sum attribute-length", True),
         ("sum area", True),
