@@ -444,8 +444,6 @@ def calc_area_apportioned_sum(zones_df, dset_src, attribute, **kwargs):
     return complete_sums_df
 
 
-# "area-weighted attribute average",
-# "area-apportioned attribute sum",
 # "mean",
 # "median",
 # "sum",
@@ -454,32 +452,6 @@ def calc_area_apportioned_sum(zones_df, dset_src, attribute, **kwargs):
 # Older code, kept temporarily for reference
 # import rasterio
 # from exactextract.exact_extract import exact_extract
-# def _vector_length(self, df, grid, stem):
-#     """Calculate length of vector data within grid cells."""
-#     inter = gpd.overlay(
-#         grid[["grid_id", "geometry"]], df[["geometry"]], how="intersection"
-#     )
-#     inter["seg_length"] = inter.geometry.length
-#     length_series = inter.groupby("grid_id")["seg_length"].sum()
-#     col_name = f"length_{stem}"
-#     grid[col_name] = grid["grid_id"].map(length_series).fillna(0)
-#     return grid
-
-# def _vector_aggregate(self, df, grid, stem, value_col=None, func="sum"):
-#     """Aggregate vector data within grid cells."""
-#     joined = gpd.sjoin(grid, df, how="left", predicate="intersects")
-#     grp = joined.groupby("grid_id")[value_col]
-#     if func == "sum":
-#         agg_series = grp.sum()
-#     elif func in ("mean", "avg"):
-#         agg_series = grp.mean()
-#     else:
-#         raise ValueError(f"Unsupported aggregation function: {func}")
-
-#     grid[f"{func}_{stem}_{value_col}"] = grid["grid_id"].map(agg_series)
-#     return grid
-
-
 # def _aggregate_raster_within_grid(
 #     self, raster_path, agg_func="sum", buffer=None, neighbor=False
 # ):
