@@ -31,10 +31,10 @@ METHODS_SUPERFLUOUS_ATTRIBUTES = [
     for k, v in VALID_CHARACTERIZATION_METHODS.items()
     if not v["attribute_required"]
 ]
-NONRASTER_METHODS = [
+NONWEIGHTS_METHODS = [
     k
     for k, v in VALID_CHARACTERIZATION_METHODS.items()
-    if "raster" not in v["valid_inputs"]
+    if not v.get("supports_weights")
 ]
 
 
@@ -227,7 +227,7 @@ def test_characterization_superfluous_methods_and_attributes(
         Characterization(**value)
 
 
-@pytest.mark.parametrize("method", NONRASTER_METHODS)
+@pytest.mark.parametrize("method", NONWEIGHTS_METHODS)
 def test_characterization_superfluous_weights_dset(data_dir, method):
     """
     Test Characterization class raises warning when weights_dset is specified but

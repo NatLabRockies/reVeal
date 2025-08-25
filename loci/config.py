@@ -42,50 +42,62 @@ VALID_CHARACTERIZATION_METHODS = {
     "feature count": {
         "valid_inputs": ["point"],
         "attribute_required": False,
+        "supports_weights": False,
     },
     "sum attribute": {
         "valid_inputs": ["point"],
         "attribute_required": True,
+        "supports_weights": False,
     },
     "sum length": {
         "valid_inputs": ["line"],
         "attribute_required": False,
+        "supports_weights": False,
     },
     "sum attribute-length": {
         "valid_inputs": ["line"],
         "attribute_required": True,
+        "supports_weights": False,
     },
     "sum area": {
         "valid_inputs": ["polygon"],
         "attribute_required": False,
+        "supports_weights": False,
     },
     "area-weighted average": {
         "valid_inputs": ["polygon"],
         "attribute_required": True,
+        "supports_weights": False,
     },
     "percent covered": {
         "valid_inputs": ["polygon"],
         "attribute_required": False,
+        "supports_weights": False,
     },
     "area-apportioned sum": {
         "valid_inputs": ["polygon"],
         "attribute_required": True,
+        "supports_weights": False,
     },
     "mean": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
+        "supports_weights": True,
     },
     "median": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
+        "supports_weights": False,
     },
     "sum": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
+        "supports_weights": True,
     },
     "area": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
+        "supports_weights": False,
     },
 }
 
@@ -286,7 +298,7 @@ class Characterization(BaseModelStrict):
         """
         if self.weights_dset:
             method_info = VALID_CHARACTERIZATION_METHODS.get(self.method)
-            if "raster" not in method_info.get("valid_inputs"):
+            if not method_info.get("supports_weights"):
                 warnings.warn(
                     f"weights_dset specified but will not be applied for {self.method}"
                 )
