@@ -15,6 +15,7 @@ from loci.overlay import (
     calc_sum_area,
     calc_percent_covered,
     calc_area_weighted_average,
+    calc_area_apportioned_sum,
 )
 
 
@@ -203,15 +204,52 @@ def test_calc_area_weighted_average(
     else:
         results = calc_area_weighted_average(zones_df, dset_src, attribute)
         if all_nans:
-            assert (
-                results["value"].isna()
-            ).all(), "Results are not all zero as expected"
+            assert (results["value"].isna()).all(), "Results are not all NA as expected"
         else:
             results_df = pd.concat([zones_df, results], axis=1)
             results_df.reset_index(inplace=True)
 
             expected_results_src = (
-                data_dir / "overlays" / "area_weighted_attribute_average_results.gpkg"
+                data_dir / "overlays" / "area_weighted_average_results.gpkg"
+            )
+            expected_df = gpd.read_file(expected_results_src)
+
+            assert_geodataframe_equal(results_df, expected_df, check_like=True)
+
+
+@pytest.mark.parametrize(
+    "dset_name,attribute,exception_type,all_zeros",
+    [
+        ("fiber_to_the_premises.gpkg", "max_advertised_upload_speed", None, False),
+        ("tlines.gpkg", "VOLTAGE", None, True),
+        ("generators.gpkg", "net_generation_megawatthours", None, True),
+        ("fiber_to_the_premises.gpkg", "h3_res8_id", TypeError, False),
+        ("fiber_to_the_premises.gpkg", "not_a_column", KeyError, False),
+    ],
+)
+def test_calc_area_apportioned_sum(
+    data_dir, base_grid, dset_name, attribute, exception_type, all_zeros
+):
+    """
+    Unit tests for calc_area_weighted_average().
+    """
+
+    zones_df = base_grid.df
+    dset_src = data_dir / "characterize" / "vectors" / dset_name
+
+    if exception_type:
+        with pytest.raises(exception_type):
+            calc_area_apportioned_sum(zones_df, dset_src, attribute)
+    else:
+        results = calc_area_apportioned_sum(zones_df, dset_src, attribute)
+        if all_zeros:
+            assert (results["value"] == 0).all(), "Results are not all zero as expected"
+        else:
+            results_df = pd.concat([zones_df, results], axis=1)
+            results_df.reset_index(inplace=True)
+
+            expected_results_src = (
+                data_dir / "overlays" / "area_apportioned_sum_results.gpkg"
             )
             expected_df = gpd.read_file(expected_results_src)
 

@@ -306,7 +306,7 @@ def calc_percent_covered(zones_df, dset_src, **kwargs):
 
 def calc_area_weighted_average(zones_df, dset_src, attribute, **kwargs):
     """
-    Calculate the area-weighted average of specified attribute for input features
+    Calculate the area-weighted average of the specified attribute for input features
     intersecting each zone in input zones dataframe. Area-weighted average is defined
     as the sum of all intersecting features' area x attribute value divided by the sum
     of all areas.
@@ -372,6 +372,76 @@ def calc_area_weighted_average(zones_df, dset_src, attribute, **kwargs):
     complete_avg_df = avg_df[["value"]].reindex(zones_df.index)
 
     return complete_avg_df
+
+
+def calc_area_apportioned_sum(zones_df, dset_src, attribute, **kwargs):
+    """
+    Calculate the area-apportioned sum of the specified attribute for input features
+    intersecting each zone in input zones dataframe. Area-apportioning for each feature
+    works by determining the proportion of each feature intersecting a given zone,
+    as a function of its intersecting area divided by the its total area. The attribute
+    value of the feature is then multiplied by this proportion to "apportion" the value
+    to the zone. The apportioned values for all features intersecting each zone are
+    then summed.
+
+    Parameters
+    ----------
+    zones_df : geopandas.GeoDataFrame
+        Input zones dataframe, to which results will be aggregated. This
+        function assumes that the index of zones_df is unique for each feature. If
+        this is not the case, unexpected results may occur.
+    dset_src : str
+        Path to input vector dataset with geometries to be included in calculating
+        coverage percents. Expected to a be a Polygon or MultiPolygon input, though
+        this is not checked. Results for Points/MultiPoints and
+        LineStrings/MultiLineStrings will be returned as all zeros since those features
+        have zero area. Must be in the same CRS as the zones_df.
+    attribute : str
+        Name of attribute in dset_src to use for calculating area-weighted average.
+    **kwargs :
+        Arbitrary keyword arguments. Not used, but allows passing extra parameters.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Returns a pandas DataFrame with a "value" column, representing the
+        area-apportioned sum of attribute values of features in each zone. The index
+        from the input zones_df is also included.
+    """
+    # pylint: disable=unused-argument
+
+    features_df = read_vectors(dset_src)
+
+    if attribute not in features_df.columns:
+        raise KeyError(f"attribute {attribute} not a column in {dset_src}")
+
+    if not pd.api.types.is_numeric_dtype(features_df[attribute]):
+        raise TypeError(f"attribute {attribute} in {dset_src} must be numeric")
+
+    zone_idx = zones_df.index.name
+
+    features_df["total_area"] = features_df.area
+
+    intersection_df = gpd.overlay(
+        features_df[["geometry", attribute, "total_area"]],
+        zones_df.reset_index()[[zone_idx, "geometry"]],
+        how="intersection",
+        keep_geom_type=True,
+        make_valid=True,
+    )
+
+    intersection_df["area"] = intersection_df.area
+    intersection_df["proportion"] = (
+        intersection_df["area"] / intersection_df["total_area"]
+    )
+    intersection_df["value"] = (
+        intersection_df[attribute] * intersection_df["proportion"]
+    )
+    sums_df = intersection_df.groupby(by=zone_idx)[["value"]].sum()
+
+    complete_sums_df = sums_df[["value"]].reindex(zones_df.index, fill_value=0)
+
+    return complete_sums_df
 
 
 # "area-weighted attribute average",
