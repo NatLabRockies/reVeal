@@ -14,6 +14,7 @@ from loci.overlay import (
     calc_sum_attribute_length,
     calc_sum_area,
     calc_percent_covered,
+    calc_area_weighted_average,
 )
 
 
@@ -174,6 +175,47 @@ def test_calc_percent_covered(data_dir, base_grid, dset_name, all_zeros):
         expected_df = gpd.read_file(expected_results_src)
 
         assert_geodataframe_equal(results_df, expected_df, check_like=True)
+
+
+@pytest.mark.parametrize(
+    "dset_name,attribute,exception_type,all_nans",
+    [
+        ("fiber_to_the_premises.gpkg", "max_advertised_upload_speed", None, False),
+        ("tlines.gpkg", "VOLTAGE", None, True),
+        ("generators.gpkg", "net_generation_megawatthours", None, True),
+        ("fiber_to_the_premises.gpkg", "h3_res8_id", TypeError, False),
+        ("fiber_to_the_premises.gpkg", "not_a_column", KeyError, False),
+    ],
+)
+def test_calc_area_weighted_average(
+    data_dir, base_grid, dset_name, attribute, exception_type, all_nans
+):
+    """
+    Unit tests for calc_area_weighted_average().
+    """
+
+    zones_df = base_grid.df
+    dset_src = data_dir / "characterize" / "vectors" / dset_name
+
+    if exception_type:
+        with pytest.raises(exception_type):
+            calc_area_weighted_average(zones_df, dset_src, attribute)
+    else:
+        results = calc_area_weighted_average(zones_df, dset_src, attribute)
+        if all_nans:
+            assert (
+                results["value"].isna()
+            ).all(), "Results are not all zero as expected"
+        else:
+            results_df = pd.concat([zones_df, results], axis=1)
+            results_df.reset_index(inplace=True)
+
+            expected_results_src = (
+                data_dir / "overlays" / "area_weighted_attribute_average_results.gpkg"
+            )
+            expected_df = gpd.read_file(expected_results_src)
+
+            assert_geodataframe_equal(results_df, expected_df, check_like=True)
 
 
 if __name__ == "__main__":

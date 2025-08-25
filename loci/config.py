@@ -60,7 +60,7 @@ VALID_CHARACTERIZATION_METHODS = {
         "valid_inputs": ["polygon"],
         "attribute_required": False,
     },
-    "area-weighted attribute average": {
+    "area-weighted average": {
         "valid_inputs": ["polygon"],
         "attribute_required": True,
     },

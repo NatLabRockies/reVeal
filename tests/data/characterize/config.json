@@ -26,7 +26,7 @@
     },
     "fttp_average_speed": {
       "dset": "vectors/fiber_to_the_premises.gpkg",
-      "method": "area-weighted attribute average",
+      "method": "area-weighted average",
       "attribute": "max_advertised_upload_speed"
     },
     "fttp_coverage_pct": {
