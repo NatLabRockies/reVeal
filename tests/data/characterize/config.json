@@ -35,7 +35,7 @@
     },
     "fttp_sum_speed": {
       "dset": "vectors/fiber_to_the_premises.gpkg",
-      "method": "area-apportioned attribute sum",
+      "method": "area-apportioned sum",
       "attribute": "max_advertised_upload_speed"
     },
     "avg_dist_to_lh_fiber": {

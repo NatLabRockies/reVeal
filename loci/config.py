@@ -68,7 +68,7 @@ VALID_CHARACTERIZATION_METHODS = {
         "valid_inputs": ["polygon"],
         "attribute_required": False,
     },
-    "area-apportioned attribute sum": {
+    "area-apportioned sum": {
         "valid_inputs": ["polygon"],
         "attribute_required": True,
     },
