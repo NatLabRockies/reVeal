@@ -20,6 +20,7 @@ from loci.overlay import (
     calc_median,
     calc_mean,
     calc_sum,
+    calc_area,
 )
 
 
@@ -363,6 +364,24 @@ def test_calc_sum(data_dir, base_grid, weighted):
     results_df.reset_index(inplace=True)
 
     expected_results_src = data_dir / "overlays" / f"zonal_sum_weighted_{weighted}.gpkg"
+    expected_df = gpd.read_file(expected_results_src)
+
+    assert_geodataframe_equal(results_df, expected_df, check_like=True)
+
+
+def test_calc_area(data_dir, base_grid):
+    """
+    Unit tests for calc_area().
+    """
+
+    zones_df = base_grid.df
+    dset_src = data_dir / "characterize" / "rasters" / "developable.tif"
+
+    results = calc_area(zones_df, dset_src)
+    results_df = pd.concat([zones_df, results], axis=1)
+    results_df.reset_index(inplace=True)
+
+    expected_results_src = data_dir / "overlays" / "area_results.gpkg"
     expected_df = gpd.read_file(expected_results_src)
 
     assert_geodataframe_equal(results_df, expected_df, check_like=True)

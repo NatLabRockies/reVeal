@@ -203,8 +203,8 @@ def test_run_characterizegrid(char_grid):
         ("mean", False),
         ("median", False),
         ("sum", False),
-        # TODO: eventually these should all be changed to False
-        ("area", True),
+        ("area", False),
+        ("not a method", True),
     ],
 )
 def test_get_overlay_method(method_name, error_expected):

@@ -9,6 +9,7 @@ import geopandas as gpd
 import pandas as pd
 from exactextract.exact_extract import exact_extract
 from osgeo.gdal import UseExceptions
+import rasterio
 
 from loci.fileio import read_vectors
 
@@ -576,7 +577,39 @@ def calc_sum(zones_df, dset_src, weights_dset, **kwargs):
     return zonal_statistic(zones_df, dset_src, stat="sum", weights_dset=weights_dset)
 
 
-# "mean",
-# "median",
-# "sum",
-# "area",
+def calc_area(zones_df, dset_src, **kwargs):
+    """
+    Calculate the area of a raster within each zone. This function works by summing
+    the raster values in each zone and then multiplying by the pixel size. See
+    assumptions under dset_src.
+
+    Parameters
+    ----------
+    zones_df : geopandas.GeoDataFrame
+        Input zones dataframe, to which results will be aggregated. This
+        function assumes that the index of zones_df is unique for each feature. If
+        this is not the case, unexpected results may occur.
+    dset_src : str
+        Path to input raster dataset to be summarized. This function assumes that
+        the values in this dataset range from 0 to 1, indicating the fraction of the
+        pixel to count when summing the total area inthe zone. If the input raster's
+        values do no range from 0 (no inclusion) to 1 (full inclusion), the output
+        results may be nonsensical.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Returns a pandas DataFrame with a "value" column, representing the total area
+        of raster within each zone. The index from the input zones_df is also included.
+    """
+    # pylint: disable=unused-argument
+
+    sums_df = zonal_statistic(zones_df, dset_src, stat="sum")
+    with rasterio.open(dset_src, "r") as src:
+        height, width = src.res
+
+    pixel_area = height * width
+
+    areas_df = sums_df * pixel_area
+
+    return areas_df
