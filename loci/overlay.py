@@ -87,7 +87,7 @@ def calc_sum_attribute(zones_df, dset_src, attribute, **kwargs):
         raise KeyError(f"attribute {attribute} not a column in {dset_src}")
 
     if not pd.api.types.is_numeric_dtype(features_df[attribute]):
-        raise TypeError("attribute {attribute} in {dset_src} must be numeric")
+        raise TypeError(f"attribute {attribute} in {dset_src} must be numeric")
 
     join_df = gpd.sjoin(
         zones_df[["geometry"]],
@@ -151,7 +151,65 @@ def calc_sum_length(zones_df, dset_src, **kwargs):
     return complete_sums_df
 
 
-# "sum length",
+def calc_sum_attribute_length(zones_df, dset_src, attribute, **kwargs):
+    """
+    Calculate the sum of attribute-length of input features intersecting each zone in
+    input zones dataframe. Attribute-length is defined as the product of the length
+    of each feature in each zone and the specified attribute value
+    (i.e., length * attribute).
+
+    Parameters
+    ----------
+    zones_df : geopandas.GeoDataFrame
+        Input zones dataframe, to which feature counts will be aggregated. This
+        function assumes that the index of zones_df is unique for each feature. If
+        this is not the case, unexpected results may occur.
+    dset_src : str
+        Path to input vector dataset with geometries whose attribute-lengths will be
+        summed. Expected to a be a LineString or MultiLineString input, though this is
+        not checked. Results for Points/MultiPoints will be returned as all zeros, and
+        results for Polygons/MultiPolygons will use perimeters instead of lengths. Must
+        be in the same CRS as the zones_df.
+    attribute : str
+        Name of attribute in dset_src to use for calculating attribute-lengths.
+    **kwargs :
+        Arbitrary keyword arguments. Not used, but allows passing extra parameters.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Returns a pandas DataFrame with a "value" column, representing the sum of
+        attribute-lengths of features in each zone. The index from the input zones_df
+        is also included.
+    """
+    # pylint: disable=unused-argument
+
+    features_df = read_vectors(dset_src)
+
+    if attribute not in features_df.columns:
+        raise KeyError(f"attribute {attribute} not a column in {dset_src}")
+
+    if not pd.api.types.is_numeric_dtype(features_df[attribute]):
+        raise TypeError(f"attribute {attribute} in {dset_src} must be numeric")
+
+    zone_idx = zones_df.index.name
+
+    intersection_df = gpd.overlay(
+        features_df[["geometry", attribute]],
+        zones_df.reset_index()[[zone_idx, "geometry"]],
+        how="intersection",
+        keep_geom_type=True,
+        make_valid=True,
+    )
+
+    intersection_df["value"] = intersection_df.length * intersection_df[attribute]
+    sums_df = intersection_df.groupby(by=zone_idx)[["value"]].sum()
+
+    complete_sums_df = sums_df.reindex(zones_df.index, fill_value=0)
+
+    return complete_sums_df
+
+
 # "sum attribute-length",
 # "sum area",
 # "area-weighted attribute average",
