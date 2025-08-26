@@ -134,4 +134,10 @@ dmypy.json
 # visual studio
 .vscode/
 
+# gaps files
 .gaps/
+
+#  extra files created by qgis
+*.gpkg-shm
+*.gpkg-wal
+*.tif.aux.xml

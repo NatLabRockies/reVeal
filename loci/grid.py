@@ -1,396 +1,306 @@
+# -*- coding: utf-8 -*-
 """
-Create demand curve grid and logic for characterizing the demand curve grid.
+grid module
 """
-from functools import cached_property
-from pathlib import Path
+import warnings
+from inspect import getmembers, isfunction
+import re
 
-from exactextract.exact_extract import exact_extract
-import geopandas as gpd
 import pandas as pd
+import geopandas as gpd
 from libpysal import graph
-import rasterio as rio
+import numpy as np
 from shapely.geometry import box
-from shapely.ops import unary_union
 
-from large_loads_2025 import HPC_REV_DATA, HPC_LARGE_LOAD_DATA
+from loci.config import load_characterize_config
+from loci import overlay
+
+OVERLAY_METHODS = {
+    k[5:]: v for k, v in getmembers(overlay, isfunction) if k.startswith("calc_")
+}
 
 
-class DemandCurveGrid:
-    """Methods for building a demand-curve table."""
+def create_grid(res, xmin, ymin, xmax, ymax, crs):
+    """
+    Create a regularly spaced grid at the specified resolution covering the
+    specified bounds.
 
-    def __init__(self, grid_size, crs, bounds=None, template=None):
-        """Initialize a DemandCurve grid object.
+    Parameters
+    ----------
+    res : float
+        Resolution of the grid (i.e., size of each grid cell along one dimension)
+        measured in units of the specified CRS.
+    xmin : float
+        Minimum x coordinate of bounding box.
+    ymin : float
+        Minimum y coordinate of bounding box.
+    xmax : float
+        Maximum x coordinate of bounding box.
+    ymax : float
+        Maximum y coordinate of bounding box.
+    crs : str
+        Coordinate reference system (CRS) of grid_resolution and bounds. Will also
+        be assigned to the returned GeoDataFrame.
+
+    Returns
+    -------
+    geopandas.GeoDataFrame
+        GeoDataFrame containing the resulting grid.
+    """
+
+    grid_df = gpd.GeoDataFrame(
+        geometry=[
+            box(x, y, x + res, y + res)
+            for x in np.arange(xmin, xmax, res)
+            for y in np.arange(ymin, ymax, res)
+        ],
+        crs=crs,
+    )
+    grid_df["grid_id"] = grid_df.index
+
+    return grid_df
+
+
+def get_neighbors(grid_df, order):
+    """
+    Create new geometry for each cell in the input grid, consisting of a union with
+    neighboring cells of the specified contiguity order.
+
+    Parameters
+    ----------
+    grid_df : geopandas.GeoDataFrame
+        Input grid geodataframe. This should be a polygon geodataframe where all
+        geometries form a coverage (i.e., a non-overlapping mesh) and neighboring
+        geometries share only points or segments of the exterior boundaries. This
+        function also assumes that the index of zones_df is unique for each feature. If
+        either of these are not the case, unexpected results may occur.
+    order : int
+        Neighbor order to apply. For example, order=1 will group all first-order
+        queen's contiguity neighbors into a new grid cell, labeled based on the
+        center grid cell.
+
+    Returns
+    -------
+    gpd.GeoDataFrame
+        A GeoDataFrame with the grid transformed into larger cells based on
+        neighbors.
+    """
+    if order == 0:
+        return grid_df.copy()
+
+    grid = grid_df.copy()
+
+    # build contiguity matrix
+    cont = graph.Graph.build_contiguity(grid, rook=False)
+    if order > 1:
+        cont = cont.higher_order(k=order, lower_order=True)
+
+    # create a "complete" adjacency lookup, that includes center cells
+    adjacent_df = cont.adjacency.reset_index()
+    centers_df = pd.DataFrame({"focal": grid.index, "neighbor": grid.index})
+    combined_df = pd.concat(
+        [centers_df, adjacent_df[["focal", "neighbor"]]], ignore_index=True
+    )
+
+    # join in geometries and dissolve into groups
+    combined_df.rename(columns={"neighbor": "join_id"}, inplace=True)
+    grid["join_id"] = grid.index
+    combined_gdf = grid.merge(combined_df, how="left", on="join_id")
+    dissolved_df = combined_gdf[["focal", "geometry"]].dissolve(
+        by="focal", as_index=True
+    )
+
+    # overwrite geometries in original grid with dissolved geometries
+    grid.loc[dissolved_df.index, ["geometry"]] = dissolved_df["geometry"]
+    grid.drop(columns=["join_id"], inplace=True)
+
+    return grid
+
+
+def get_overlay_method(method_name):
+    """
+    Get and return the function corresponding to the input overlay method name.
+
+    Parameters
+    ----------
+    method_name : str
+        Name of overlay method to retrieve.
+
+    Returns
+    -------
+    Callable
+        Overlay method as a function.
+
+    Raises
+    ------
+    NotImplementedError
+        A NotImplementedError will be raised if a function cannot be found
+        corresponding to the specified method_name.
+    """
+    pattern = r"[\W\s]+"
+    # Replace all matches of the pattern with a single underscore
+    sanitized_method = re.sub(pattern, "_", method_name).strip("_").lower()
+
+    method = OVERLAY_METHODS.get(sanitized_method)
+    if not method:
+        raise NotImplementedError(f"Unrecognized or unsupported method: {method_name}")
+
+    return method
+
+
+def run_characterization(df, characterization):
+    """
+    Execute a single characterization on an input grid.
+
+    Parameters
+    ----------
+    df : geopandas.GeoDataFrame
+        Input grid geodataframe. This should be a polygon geodataframe where all
+        geometries form a coverage (i.e., a non-overlapping mesh) and neighboring
+        geometries share only points or segments of the exterior boundaries. This
+        function also assumes that the index of df is unique for each feature. If
+        either of these are not the case, unexpected results may occur.
+    characterization : :class:`loci.config.Characterization`
+        Input information describing characterization to be run, in the form of
+        a Characterization instance.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Returns a pandas DataFrame with a "value" column, representing the output
+        values from the characterization for each zone. The index from the input df
+        is also included.
+    """
+    grid_df = get_neighbors(df, characterization.neighbor_order)
+    if characterization.buffer_distance > 0:
+        grid_df["geometry"] = grid_df["geometry"].buffer(
+            characterization.buffer_distance
+        )
+
+    method = get_overlay_method(characterization.method)
+    result_df = method(grid_df, **characterization.dict())
+
+    return result_df
+
+
+class Grid:
+    """
+    Grid base class
+    """
+
+    def __init__(self, res=None, bounds=None, crs=None, template=None):
+        """
+        Initialize a Grid instance from a template or input parameters.
 
         Parameters
         ----------
-        grid_size : int
-            The size of the grid cells.
+        res : float
+            Resolution of the grid (i.e., size of each grid cell along one dimension)
+            measured in units of the specified CRS. Required if template=None.
+            Ignored if template is provided. Default is None.
         crs : str
-            The coordinate reference system for the grid.
+            Coordinate reference system (CRS) for the grid. Required if template=None.
+            If template is provided, the grid will be reprojected to this CRS. Default
+            is None.
         bounds : tuple, optional
-            The spatial bounds for the grid, by default None
+            The spatial bounds for the grid in the format [xmin, ymin, xmax, ymax],
+            in units of crs (or the template CRS). Required if template=None.
+            If template is provided, the grid will be subset to the cells intersecting
+            the specified bounds. Default is None.
         template : str, optional
-            Path to a template file for the grid, by default None
+            Path to a template file for the grid. Input template should be a vector
+            polygon dataset. Default is None.
         """
-        self.grid_size = grid_size
-        self.crs = crs
-        self.grid = None
-        self.bounds = bounds if bounds else None
-        self.template = template if template else None
-        self.bounds = self._get_bounds() if template else None
-        self.grid = self.create_grid() if (bounds or template) else None
-
-    def __repr__(self):
-        """Return DemandCurveGrid object representation string."""
-        name = self.__class__.__name__
-        skip_types = (gpd.geodataframe.GeoDataFrame, pd.core.frame.DataFrame)
-        items = self.__dict__.items()
-        items = {k: v for k, v in items if not isinstance(v, skip_types)}
-        address = hex(id(self))
-        msgs = [f"\n   {k}={v}" for k, v in items.items()]
-        msg = " ".join(msgs)
-        return f"<{name} object at {address}> {msg}"
-
-    def _get_bounds(self):
-        """Get the bounds for the grid."""
-        ext = Path(self.template).suffix.lower()
-        if ext in [".gpkg", ".geojson", ".shp"]:
-            bounds = gpd.read_file(self.template).total_bounds
-        elif ext in [".tif"]:
-            with rio.open(self.template) as src:
-                bounds = src.bounds
+        if not template:
+            if res is None or crs is None or bounds is None:
+                raise ValueError(
+                    "If template is not provided, grid_size, crs, and bounds must be "
+                    "specified."
+                )
+            self.df = create_grid(res, *bounds, crs)
         else:
-            raise ValueError(f"Unsupported file type: {ext}")
-        return bounds
+            if res is not None:
+                warnings.warn(
+                    "res specified but template provided. res will be ignored."
+                )
 
-    def create_grid(self):
-        """Create a grid based on bounds.
+            grid = gpd.read_file(template)
+            if crs:
+                grid.to_crs(crs, inplace=True)
+            if bounds:
+                bounds_box = box(*bounds)
+                self.df = grid[grid.intersects(bounds_box)].copy()
+            else:
+                self.df = grid
 
-        Returns
-        -------
-        gpd.GeoDataFrame
-            A GeoDataFrame representing the grid.
+        self.crs = self.df.crs
+        self._add_gid()
+
+    def _add_gid(self):
         """
-        bounds: tuple[float, float, float, float] = (
-            self.bounds if self.bounds is not None else self._get_bounds()
-        )
-        minx, miny, maxx, maxy = bounds
-
-        self.grid = gpd.GeoDataFrame(
-            geometry=[
-                box(x, y, x + self.grid_size, y + self.grid_size)
-                for x in range(int(minx), int(maxx), self.grid_size)
-                for y in range(int(miny), int(maxy), self.grid_size)
-            ],
-            crs=self.crs,
-        )
-        self.grid["grid_id"] = self.grid.index
-        return self.grid
-
-    def _neighbor(self):
-        """Create new geometry for grid that consists of its neighbors."""
-        grid = self.grid.copy()
-        grid = grid.set_index("grid_id")
-        cont = graph.Graph.build_contiguity(grid, rook=False)
-        adj = cont.adjacency
-        mappings = {i: list(adj[i].keys()) for i in grid.index}
-
-        grid["geometry"] = grid.index.to_series().map(
-            lambda idx: unary_union(
-                [grid.geometry.loc[idx]]
-                + [grid.geometry.loc[n] for n in mappings.get(idx, [])]
+        Adds gid column to self.df and sets as index.
+        """
+        if "gid" in self.df.columns:
+            warnings.warn(
+                "gid column already exists in self.dataframe. Values will be "
+                "overwritten."
             )
-        )
-        grid = grid.reset_index()
-        return grid
+        self.df["gid"] = range(0, len(self.df))
+        self.df.set_index("gid", inplace=True)
 
-    @cached_property
-    def grid_neighbors(self):
-        """Cached property: unioned neighbor geometries for each grid cell."""
-        return None if self.grid is None else self._neighbor()
 
-    def _get_grid(self, neighbor=False):
-        """Get the grid, optionally with neighbor geometries."""
-        if neighbor:
-            grid = self.grid_neighbors.copy()
-        else:
-            grid = self.grid.copy()
-        return grid
+class CharacterizeGrid(Grid):
+    """
+    Subclass of Grid for running characterizations.
+    """
 
-    def _vector_proximity(self, df, grid, stem):
-        """Calculate proximity of vector data to grid cells."""
-        joined = gpd.sjoin_nearest(
-            grid, df, how="left", distance_col=f"proximity_{stem}"
-        )
-        joined = joined.drop_duplicates(subset="grid_id")
-        grid[f"proximity_{stem}"] = joined[f"proximity_{stem}"].values
-        return grid
-
-    def _vector_length(self, df, grid, stem):
-        """Calculate length of vector data within grid cells."""
-        inter = gpd.overlay(
-            grid[['grid_id', 'geometry']],
-            df[['geometry']],
-            how='intersection'
-        )
-        inter['seg_length'] = inter.geometry.length
-        length_series = inter.groupby('grid_id')['seg_length'].sum()
-        col_name = f"length_{stem}"
-        grid[col_name] = (
-            grid['grid_id']
-            .map(length_series)
-            .fillna(0)
-        )
-        return grid
-
-    def _vector_count(self, df, grid, stem):
-        """Count occurrences of vector data within grid cells."""
-        joined = gpd.sjoin(grid, df, how="left", predicate="intersects")
-        counts = joined.groupby("grid_id")["index_right"].count()
-        count_col = f"count_{stem}"
-        grid[count_col] = grid["grid_id"].map(counts).fillna(0).astype(int)
-        return grid
-
-    def _vector_aggregate(self, df, grid, stem, value_col=None, func="sum"):
-        """Aggregate vector data within grid cells."""
-        joined = gpd.sjoin(grid, df, how="left", predicate="intersects")
-        grp = joined.groupby("grid_id")[value_col]
-        if func == "sum":
-            agg_series = grp.sum()
-        elif func in ("mean", "avg"):
-            agg_series = grp.mean()
-        else:
-            raise ValueError(f"Unsupported aggregation function: {func}")
-
-        grid[f"{func}_{stem}_{value_col}"] = grid["grid_id"].map(agg_series)
-        return grid
-
-    def _vector_intersects(self, df, grid, stem):
-        """Flag each grid cell True/False if it intersects any feature."""
-        joined = gpd.sjoin(
-            grid[['grid_id', 'geometry']],
-            df[['geometry']],
-            how='left',
-            predicate='intersects'
-        )
-
-        intersects = joined.groupby('grid_id')['index_right'].count()
-        col_name = f"intersects_{stem}"
-        grid[col_name] = (grid['grid_id']
-                          .map(intersects)
-                          .fillna(0)
-                          .astype(int) > 0)
-        return grid
-
-    def _aggregate_vector_within_grid(
-        self, df_path, value_col=None, agg_func="sum",
-        buffer=None, neighbor=False
-    ):
-        """Aggregate vector data within grid cells.
-
-        Parameters
-        ----------
-        df_path : str
-            Path to the vector data file.
-        value_col : str, optional
-            Name of the column to aggregate, by default None
-        agg_func : str, optional
-            Aggregation function, by default "sum"
-            Supported functions are:
-            "proximity", "count", "sum", "mean", "avg", "length",
-            and "intersects".
-        buffer : float, optional
-            Buffer distance to apply to grid geometries, by default None
-        neighbor : bool, optional
-            Whether to include neighboring grid cells, by default False
-
-        Returns
-        -------
-        gpd.GeoDataFrame
-            The updated grid with aggregated values.
+    def __init__(self, config):
         """
-        grid = self._get_grid(neighbor)
-
-        if buffer is not None:
-            grid["geometry"] = grid.geometry.buffer(buffer)
-
-        df = gpd.read_file(df_path).to_crs(self.crs)
-        stem = Path(df_path).stem
-        func = agg_func.lower()
-
-        if isinstance(value_col, float) and pd.isna(value_col):
-            value_col = None
-        if isinstance(value_col, str) and not value_col.strip():
-            value_col = None
-
-        if func == "proximity":
-            grid = self._vector_proximity(df, grid, stem)
-        elif func == "count":
-            grid = self._vector_count(df, grid, stem)
-        elif func in ("sum", "mean", "avg"):
-            grid = self._vector_aggregate(df, grid, stem, value_col, func)
-        elif func == "length":
-            grid = self._vector_length(df, grid, stem)
-        elif func == "intersects":
-            grid = self._vector_intersects(df, grid, stem)
-        else:
-            raise ValueError(f"Unsupported aggregation function: {func}")
-
-        return grid
-
-    def _aggregate_raster_within_grid(
-        self, raster_path, agg_func="sum", buffer=None, neighbor=False
-    ):
-        """Aggregate raster values within grid cells using exactextract.
+        Initialize grid from configuration.
 
         Parameters
         ----------
-        raster_path : str
-            Path to the raster file.
-        agg_func : str, optional
-            Aggregation function to use, by default "sum"
-            Supported functions are: "sum", "mean", "avg", "min", "max".
-        buffer : float, optional
-            Buffer distance to apply to grid geometries, by default None
-        neighbor : bool, optional
-            Whether to include neighboring grid cells, by default False
-
-        Returns
-        -------
-        gpd.GeoDataFrame
-            The updated grid with aggregated values.
+        config : [dict, CharacterizeConfig]
+            Input configuration as either a dictionary or a CharacterizationConfig
+            instance. If a dictionary, validation will be performed to ensure
+            inputs are valid.
         """
-        grid = self._get_grid(neighbor)
+        config = load_characterize_config(config)
+        super().__init__(template=config.grid)
+        self.config = config
 
-        if buffer is not None:
-            grid["geometry"] = grid.geometry.buffer(buffer)
-
-        with rio.open(raster_path) as src:
-            grid = grid.to_crs(src.crs)
-
-        stem = Path(raster_path).stem
-        func = agg_func.lower()
-
-        result = exact_extract(
-            rast=raster_path,
-            vec=grid,
-            include_cols=["grid_id"],
-            ops=[func],
-            output="pandas",
-        )
-
-        col_name = f"{func}_{stem}"
-        result.rename(columns={f"{func}": col_name}, inplace=True)
-
-        return result
-
-    def aggregate_within_grid(
-        self, df_path, value_col=None, agg_func="sum",
-        buffer=None, neighbor=False
-    ):
-        """Aggregate data within grid cells.
-
-        Parameters
-        ----------
-        df_path : str
-            Path to the vector data file.
-        value_col : str, optional
-            Name of the column to aggregate, by default None
-        agg_func : str, optional
-            Aggregation function to use, by default "sum"
-        buffer : float, optional
-            Buffer distance to apply to grid geometries, by default None
-
-        Returns
-        -------
-        gpd.GeoDataFrame
-            A GeoDataFrame with aggregated values.
+    def run(self):
         """
-        ext = Path(df_path).suffix.lower()
-        if ext in [".tif", ".tiff"]:
-            grid = self._aggregate_raster_within_grid(
-                df_path, agg_func, buffer, neighbor
-            )
-        elif ext in [".gpkg", ".geojson", ".shp"]:
-            grid = self._aggregate_vector_within_grid(
-                df_path, value_col, agg_func, buffer, neighbor
-            )
-        else:
-            raise ValueError(f"Unsupported file type: {ext}")
-
-        return grid
-
-    def csv_to_spec(self, csv_path):
-        """Convert a CSV file to a specification dictionary.
-
-        Parameters
-        ----------
-        csv_path : str
-            Path to the CSV file.
-
-        Returns
-        -------
-        dict
-            A dictionary with the specification.
-        """
-        df = pd.read_csv(csv_path)
-        spec = {}
-        for _, row in df.iterrows():
-            path = row["path"]
-            agg = row["operation"]
-            value_col = row.get("value_col", None)
-            buffer = row.get("buffer", None)
-            neighbor = row.get("neighbor", False)
-
-            spec[Path(path).stem] = {
-                "path": path,
-                "agg": agg,
-                "value_col": value_col,
-                "buffer": buffer,
-                "neighbor": neighbor,
-            }
-        return spec
-
-    def characterize_grid(self, spec):
-        """Characterize the grid based on the provided specification.
-
-        Parameters
-        ----------
-        spec : dict
-            A dictionary with the specification.
+        Run grid characterization based on the input configuration.
 
         Returns
         -------
         gpd.GeoDataFrame
             A GeoDataFrame with the characterized grid.
         """
-        out = self.grid.copy()
+        results = []
+        for attr_name, char_info in self.config.characterizations.items():
+            try:
+                char_df = run_characterization(self.df, char_info)
+                char_df.rename(columns={"value": attr_name}, inplace=True)
+                results.append(char_df)
+            except NotImplementedError:
+                warnings.warn(f"Method {char_info.method} not supported")
 
-        for _, cfg in spec.items():
-            path = cfg["path"]
-            agg = cfg.get("agg", "sum")
-            buf = cfg.get("buffer", None)
-            val_col = cfg.get("value_col", None)
-            neighbor = cfg.get("neighbor", False)
+        results_df = pd.concat([self.df] + results, axis=1)
 
-            layer = self.aggregate_within_grid(
-                path, value_col=val_col, agg_func=agg,
-                buffer=buf, neighbor=neighbor
+        for attr_name, expression in self.config.expressions.items():
+            try:
+                results_df[attr_name] = results_df.eval(expression)
+            except pd.errors.UndefinedVariableError as e:
+                warnings.warn(f"Unable to derive output values for {attr_name}: {e}")
+
+        na_check = results_df.isna().any()
+        if na_check.any():
+            cols_with_nas = na_check.keys()[na_check.values].tolist()
+            raise ValueError(
+                "NAs encountered in results dataframe in the following columns: "
+                f"{cols_with_nas}"
             )
 
-            merge_cols = [
-                c for c in layer.columns if c not in ("geometry", "grid_id")]
-            out = out.merge(layer[["grid_id"] + merge_cols],
-                            on="grid_id", how="left")
-
-        return out
-
-
-if __name__ == "__main__":
-    temp = HPC_REV_DATA.joinpath("rasters/templates/rev_template_fy25.tif")
-    demand_grid = DemandCurveGrid(grid_size=10_000, crs="EPSG:5070",
-                                  template=str(temp))
-    SPEC_PATH = HPC_LARGE_LOAD_DATA.joinpath(
-        "tables/misc/characterization_layers.csv")
-    spec_dict = demand_grid.csv_to_spec(SPEC_PATH)
-    characterized_grid = demand_grid.characterize_grid(spec_dict)
+        return results_df

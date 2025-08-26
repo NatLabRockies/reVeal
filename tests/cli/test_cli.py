@@ -2,6 +2,9 @@
 """Tests for CLI"""
 import json
 
+import geopandas as gpd
+from geopandas.testing import assert_geodataframe_equal
+
 import pytest
 
 from loci.cli.cli import main
@@ -38,7 +41,17 @@ def test_characterize(
         main,
         ["characterize", "-c", config_path.as_posix()],
     )
-    assert result.exit_code == 0
+    assert result.exit_code == 0, f"Command failed with error {result.exception}"
+
+    out_gpkg = tmp_path / "grid_char.gpkg"
+    assert out_gpkg.exists(), "Output grid not created."
+
+    out_df = gpd.read_file(out_gpkg)
+
+    expected_gpkg = data_dir / "characterize" / "outputs" / "grid_char.gpkg"
+    expected_df = gpd.read_file(expected_gpkg)
+
+    assert_geodataframe_equal(expected_df, out_df)
 
 
 def test_characterize_invalid_config(
