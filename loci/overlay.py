@@ -23,7 +23,7 @@ def calc_feature_count(zones_df, dset_src, **kwargs):
     dset_src : str
         Path to input vector dataset to be counted. Must be in the same CRS as
         the zones_df.
-    **kwargs :
+    **kwargs
         Arbitrary keyword arguments. Note that none of these are used, but this
         allows passing an arbitrary dictionary that includes both used and unused
         parameters as input to the function.
