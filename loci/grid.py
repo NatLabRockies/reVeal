@@ -178,7 +178,7 @@ def run_characterization(df, characterization):
         )
 
     method = get_overlay_method(characterization.method)
-    result_df = method(grid_df, **characterization.dict())
+    result_df = method(grid_df, **characterization.model_dump())
 
     return result_df
 
