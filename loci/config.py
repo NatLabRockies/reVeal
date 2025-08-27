@@ -335,7 +335,7 @@ class CharacterizeConfig(BaseModelStrict):
             Returns self.
         """
         for v in self["characterizations"].values():
-            if not "data_dir" in v:
+            if "data_dir" not in v:
                 v["data_dir"] = self["data_dir"]
 
         return self
