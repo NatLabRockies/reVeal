@@ -26,7 +26,7 @@
     },
     "fttp_average_speed": {
       "dset": "vectors/fiber_to_the_premises.gpkg",
-      "method": "area-weighted attribute average",
+      "method": "area-weighted average",
       "attribute": "max_advertised_upload_speed"
     },
     "fttp_coverage_pct": {
@@ -35,12 +35,13 @@
     },
     "fttp_sum_speed": {
       "dset": "vectors/fiber_to_the_premises.gpkg",
-      "method": "area-apportioned attribute sum",
+      "method": "area-apportioned sum",
       "attribute": "max_advertised_upload_speed"
     },
     "avg_dist_to_lh_fiber": {
       "dset": "rasters/fiber_lines_onshore_proximity.tif",
-      "method": "mean"
+      "method": "mean",
+      "weights_dset": "rasters/developable.tif"
     },
     "med_dist_to_lh_fiber": {
       "dset": "rasters/fiber_lines_onshore_proximity.tif",

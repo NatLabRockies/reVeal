@@ -2,6 +2,8 @@ name: pytest
 
 on: pull_request
 
+permissions: read-all
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -12,10 +14,11 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
       with:
         ref: ${{ github.event.pull_request.head.ref }}
         fetch-depth: 1
+        persist-credentials: false
 
     - name: Install Conda environment from environment.yml
       uses: mamba-org/setup-micromamba@main

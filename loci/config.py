@@ -17,7 +17,6 @@ from pydantic import (
     DirectoryPath,
     constr,
     NonNegativeInt,
-    StrictBool,
 )
 
 from loci.fileio import (
@@ -43,50 +42,62 @@ VALID_CHARACTERIZATION_METHODS = {
     "feature count": {
         "valid_inputs": ["point"],
         "attribute_required": False,
+        "supports_weights": False,
     },
     "sum attribute": {
         "valid_inputs": ["point"],
         "attribute_required": True,
+        "supports_weights": False,
     },
     "sum length": {
         "valid_inputs": ["line"],
         "attribute_required": False,
+        "supports_weights": False,
     },
     "sum attribute-length": {
         "valid_inputs": ["line"],
         "attribute_required": True,
+        "supports_weights": False,
     },
     "sum area": {
         "valid_inputs": ["polygon"],
         "attribute_required": False,
+        "supports_weights": False,
     },
-    "area-weighted attribute average": {
+    "area-weighted average": {
         "valid_inputs": ["polygon"],
         "attribute_required": True,
+        "supports_weights": False,
     },
     "percent covered": {
         "valid_inputs": ["polygon"],
         "attribute_required": False,
+        "supports_weights": False,
     },
-    "area-apportioned attribute sum": {
+    "area-apportioned sum": {
         "valid_inputs": ["polygon"],
         "attribute_required": True,
+        "supports_weights": False,
     },
     "mean": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
+        "supports_weights": True,
     },
     "median": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
+        "supports_weights": False,
     },
     "sum": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
+        "supports_weights": True,
     },
     "area": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
+        "supports_weights": False,
     },
 }
 
@@ -129,14 +140,15 @@ class Characterization(BaseModelStrict):
     data_dir: DirectoryPath
     method: constr(to_lower=True)
     attribute: Optional[str] = None
-    apply_exclusions: Optional[StrictBool] = False
-    neighbor_order: Optional[NonNegativeInt] = 0.0
+    weights_dset: Optional[str] = None
+    neighbor_order: Optional[NonNegativeInt] = 0
     buffer_distance: Optional[float] = 0.0
     # Derived dynamically
     dset_src: FilePath
     dset_format: Optional[DatasetFormatEnum] = None
     dset_ext: Optional[str] = None
     crs: Optional[str] = None
+    weights_dset_src: Optional[FilePath] = None
 
     @field_validator("method")
     def is_valid_method(cls, value):
@@ -176,6 +188,18 @@ class Characterization(BaseModelStrict):
 
         if self.get("data_dir") and self.get("dset"):
             self["dset_src"] = Path(self["data_dir"]) / self["dset"]
+
+        return self
+
+    @model_validator(mode="before")
+    def set_weights_dset_src(self):
+        """
+        Dynamically set the the weights_dset_src property by joining input data_dir
+        and weights_dset.
+        """
+
+        if self.get("data_dir") and self.get("weights_dset"):
+            self["weights_dset_src"] = Path(self["data_dir"]) / self["weights_dset"]
 
         return self
 
@@ -224,15 +248,17 @@ class Characterization(BaseModelStrict):
         """
 
         if self.dset_ext == ".parquet":
-            self.dset_format = get_geom_type_parquet(self.dset_src)
+            dset_format = get_geom_type_parquet(self.dset_src)
         elif _get_drivers_for_path(self.dset):
-            self.dset_format = get_geom_type_pyogrio(self.dset_src)
+            dset_format = get_geom_type_pyogrio(self.dset_src)
         elif self.dset_ext[1:] in raster_driver_extensions():
             # note: order matters in these checks - do raster to avoid confusion on
             # gpkg
-            self.dset_format = "raster"
+            dset_format = "raster"
         else:
             raise TypeError(f"Unsupported file format for for {self.dset_src}.")
+
+        self.dset_format = DatasetFormatEnum(dset_format)
 
         return self
 
@@ -266,6 +292,21 @@ class Characterization(BaseModelStrict):
 
         return self
 
+    @model_validator(mode="after")
+    def weights_dset_check(self):
+        """
+        Check that, if weights_dset is provided, the selected method is applicable
+        to rasters. If not, warn the user.
+        """
+        if self.weights_dset:
+            method_info = VALID_CHARACTERIZATION_METHODS.get(self.method)
+            if not method_info.get("supports_weights"):
+                warnings.warn(
+                    f"weights_dset specified but will not be applied for {self.method}"
+                )
+
+        return self
+
 
 class CharacterizeConfig(BaseModelStrict):
     """
@@ -294,7 +335,7 @@ class CharacterizeConfig(BaseModelStrict):
             Returns self.
         """
         for v in self["characterizations"].values():
-            if not "data_dir" in v:
+            if "data_dir" not in v:
                 v["data_dir"] = self["data_dir"]
 
         return self
