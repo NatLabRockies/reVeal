@@ -56,7 +56,12 @@ def _preprocessor(config, job_name, log_directory, verbose):
 
     LOGGER.info("Validating input configuration file")
     try:
-        CharacterizeConfig(**config)
+        char_config = {
+            k: config.get(k)
+            for k in CharacterizeConfig.model_fields.keys()
+            if k in config
+        }
+        CharacterizeConfig(**char_config)
     except ValidationError as e:
         LOGGER.error(
             "Configuration did not pass validation. "
