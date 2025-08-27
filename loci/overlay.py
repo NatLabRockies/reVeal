@@ -5,6 +5,7 @@ overlay module
 Note that to expose methods here for by loci.grid.get_overlay_method() function
 and functions dependent on it, the function must be prefixed with "calc_".
 """
+# pylint: disable=unused-argument
 import geopandas as gpd
 import pandas as pd
 from exactextract.exact_extract import exact_extract
@@ -40,7 +41,6 @@ def calc_feature_count(zones_df, dset_src, **kwargs):
         Returns a pandas DataFrame with a "value" column, representing the count
         of features in each zone. The index from the input zones_df is also included.
     """
-    # pylint: disable=unused-argument
 
     features_df = read_vectors(dset_src)
     features_df["feature_count"] = 1
@@ -86,7 +86,6 @@ def calc_sum_attribute(zones_df, dset_src, attribute, **kwargs):
         of the attribute of features in each zone. The index from the input zones_df is
         also included.
     """
-    # pylint: disable=unused-argument
 
     features_df = read_vectors(dset_src)
     if attribute not in features_df.columns:
@@ -135,7 +134,6 @@ def calc_sum_length(zones_df, dset_src, **kwargs):
         lengths of features in each zone. The index from the input zones_df is also
         included.
     """
-    # pylint: disable=unused-argument
 
     features_df = read_vectors(dset_src)
 
@@ -188,7 +186,6 @@ def calc_sum_attribute_length(zones_df, dset_src, attribute, **kwargs):
         attribute-lengths of features in each zone. The index from the input zones_df
         is also included.
     """
-    # pylint: disable=unused-argument
 
     features_df = read_vectors(dset_src)
 
@@ -243,7 +240,6 @@ def calc_sum_area(zones_df, dset_src, **kwargs):
         combined area of features in each zone. The index from the input zones_df is
         also included.
     """
-    # pylint: disable=unused-argument
 
     features_df = read_vectors(dset_src)
 
@@ -293,7 +289,6 @@ def calc_percent_covered(zones_df, dset_src, **kwargs):
         of each zone coverd by input features. The index from the input zones_df is
         also included.
     """
-    # pylint: disable=unused-argument
 
     feature_areas_df = calc_sum_area(zones_df, dset_src)
     feature_areas_df.rename(columns={"value": "feature_area"}, inplace=True)
@@ -349,7 +344,6 @@ def calc_area_weighted_average(zones_df, dset_src, attribute, **kwargs):
         area-weighted average of attribute values of features in each zone. The index
         from the input zones_df is also included.
     """
-    # pylint: disable=unused-argument
 
     features_df = read_vectors(dset_src)
 
@@ -413,7 +407,6 @@ def calc_area_apportioned_sum(zones_df, dset_src, attribute, **kwargs):
         area-apportioned sum of attribute values of features in each zone. The index
         from the input zones_df is also included.
     """
-    # pylint: disable=unused-argument
 
     features_df = read_vectors(dset_src)
 
@@ -476,7 +469,6 @@ def zonal_statistic(zones_df, dset_src, stat, weights_dset_src=None, **kwargs):
         aggregate statistic of raster values within each zone. The index from the
         input zones_df is also included.
     """
-    # pylint: disable=unused-argument
 
     zone_idx = zones_df.index.name
     if weights_dset_src is not None:
@@ -516,7 +508,6 @@ def calc_median(zones_df, dset_src, **kwargs):
         median raster value within each zone. The index from the input zones_df is also
         included.
     """
-    # pylint: disable=unused-argument
 
     return zonal_statistic(zones_df, dset_src, stat="median")
 
@@ -544,7 +535,6 @@ def calc_mean(zones_df, dset_src, weights_dset_src, **kwargs):
         mean or weighted mean raster value within each zone. The index from the input
         zones_df is also included.
     """
-    # pylint: disable=unused-argument
 
     return zonal_statistic(
         zones_df, dset_src, stat="mean", weights_dset_src=weights_dset_src
@@ -574,7 +564,6 @@ def calc_sum(zones_df, dset_src, weights_dset_src, **kwargs):
         sum or weighted sum of raster values within each zone. The index from the input
         zones_df is also included.
     """
-    # pylint: disable=unused-argument
 
     return zonal_statistic(
         zones_df, dset_src, stat="sum", weights_dset_src=weights_dset_src
@@ -606,7 +595,6 @@ def calc_area(zones_df, dset_src, **kwargs):
         Returns a pandas DataFrame with a "value" column, representing the total area
         of raster within each zone. The index from the input zones_df is also included.
     """
-    # pylint: disable=unused-argument
 
     sums_df = zonal_statistic(zones_df, dset_src, stat="sum")
     with rasterio.open(dset_src, "r") as src:
