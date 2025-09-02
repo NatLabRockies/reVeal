@@ -2,12 +2,12 @@
 The reV Extension for Analyzing Large Loads.
 
 ## Installation
-1. Clone the repo
+1. Clone the repository
     ```commandline
     git clone git@github.com:NREL/reVeal.git
     ```
 
-2. Move into the local repo
+2. Move into the local repository
     ```command line
     cd reVeal
     ```
