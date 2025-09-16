@@ -62,6 +62,12 @@
       "method": "sum",
       "parallel": false
     },
+    "fiber_availability_area": {
+      "dset": "rasters/fiber_availability_binary.tif",
+      "method": "area",
+      "weights_dset": "rasters/developable.tif",
+      "parallel": false
+    },
     "developable_area": {
       "dset": "rasters/developable.tif",
       "method": "area",

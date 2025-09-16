@@ -711,7 +711,7 @@ def calc_sum(zones_df, dset_src, weights_dset_src, parallel=False, **kwargs):
     )
 
 
-def calc_area(zones_df, dset_src, parallel=False, **kwargs):
+def calc_area(zones_df, dset_src, weights_dset_src, parallel=False, **kwargs):
     """
     Calculate the area of a raster within each zone. This function works by summing
     the raster values in each zone and then multiplying by the pixel size. See
@@ -726,9 +726,12 @@ def calc_area(zones_df, dset_src, parallel=False, **kwargs):
     dset_src : str
         Path to input raster dataset to be summarized. This function assumes that
         the values in this dataset range from 0 to 1, indicating the fraction of the
-        pixel to count when summing the total area inthe zone. If the input raster's
+        pixel to count when summing the total area in the zone. If the input raster's
         values do no range from 0 (no inclusion) to 1 (full inclusion), the output
         results may be nonsensical.
+    weights_dset_src : str, optional
+        Optional path to datset to use for weights. If specified, the area for each
+        zone will be weighted based on the values in this dataset.
     parallel : bool, optional
         If True, run the zonal statistic operation with parallel processing. If False
         (default), run with serial processing.
@@ -737,10 +740,17 @@ def calc_area(zones_df, dset_src, parallel=False, **kwargs):
     -------
     pandas.DataFrame
         Returns a pandas DataFrame with a "value" column, representing the total area
-        of raster within each zone. The index from the input zones_df is also included.
+        (or weighted area) of the raster within each zone. The index from the
+        input zones_df is also included.
     """
 
-    sums_df = zonal_statistic(zones_df, dset_src, stat="sum", parallel=parallel)
+    sums_df = zonal_statistic(
+        zones_df,
+        dset_src,
+        stat="sum",
+        weights_dset_src=weights_dset_src,
+        parallel=parallel,
+    )
     with rasterio.open(dset_src, "r") as src:
         height, width = src.res
 

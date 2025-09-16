@@ -109,7 +109,7 @@ VALID_CHARACTERIZATION_METHODS = {
     "area": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
-        "supports_weights": False,
+        "supports_weights": True,
         "supports_parallel": True,
     },
 }
