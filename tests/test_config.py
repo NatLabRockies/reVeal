@@ -36,6 +36,11 @@ NONWEIGHTS_METHODS = [
     for k, v in VALID_CHARACTERIZATION_METHODS.items()
     if not v.get("supports_weights")
 ]
+NONPARALLEL_METHODS = [
+    k
+    for k, v in VALID_CHARACTERIZATION_METHODS.items()
+    if not v.get("supports_parallel")
+]
 
 
 @pytest.mark.parametrize(
@@ -124,6 +129,7 @@ def test_characterization_dynamic_attributes(
         "weights_dset": weights_dset,
         "neighbor_order": 0,
         "buffer_distance": 0,
+        "parallel": False,
     }
     characterization = Characterization(**value)
 
@@ -169,11 +175,16 @@ def test_characterization_valid_methods_and_attributes(data_dir, method, attribu
     else:
         raise ValueError("Unrecognized geom_type")
 
+    supports_parallel = VALID_CHARACTERIZATION_METHODS.get(method).get(
+        "supports_parallel"
+    )
+
     value = {
         "dset": dset,
         "data_dir": data_dir,
         "method": method,
         "attribute": attribute,
+        "parallel": supports_parallel,
     }
 
     Characterization(**value)
@@ -220,6 +231,7 @@ def test_characterization_superfluous_methods_and_attributes(
         "data_dir": data_dir,
         "method": method,
         "attribute": attribute,
+        "parallel": False,
     }
     with pytest.warns(
         UserWarning, match="attribute specified but will not be applied.*"
@@ -257,9 +269,47 @@ def test_characterization_superfluous_weights_dset(data_dir, method):
         "method": method,
         "attribute": attribute,
         "weights_dset": "characterize/rasters/developable.tif",
+        "parallel": False,
     }
     with pytest.warns(
         UserWarning, match="weights_dset specified but will not be applied.*"
+    ):
+        Characterization(**value)
+
+
+@pytest.mark.parametrize("method", NONPARALLEL_METHODS)
+def test_characterization_superfluous_parallel(data_dir, method):
+    """
+    Test Characterization class raises warning when parallel=True is specified but
+    not applicable to the method.
+    """
+    geom_type = VALID_CHARACTERIZATION_METHODS.get(method).get("valid_inputs")[0]
+    if VALID_CHARACTERIZATION_METHODS.get(method).get("attribute_required"):
+        attribute = "a_field"
+    else:
+        attribute = None
+
+    dset = None
+    if geom_type == "point":
+        dset = "characterize/vectors/generators.gpkg"
+    elif geom_type == "line":
+        dset = "characterize/vectors/tlines.gpkg"
+    elif geom_type == "polygon":
+        dset = "characterize/vectors/fiber_to_the_premises.gpkg"
+    elif geom_type == "raster":
+        dset = "characterize/rasters/fiber_lines_onshore_proximity.tif"
+    else:
+        raise ValueError("Unrecognized geom_type")
+
+    value = {
+        "dset": dset,
+        "data_dir": data_dir,
+        "method": method,
+        "attribute": attribute,
+        "parallel": True,
+    }
+    with pytest.warns(
+        UserWarning, match="parallel specified as True but will not be applied.*"
     ):
         Characterization(**value)
 

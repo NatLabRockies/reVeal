@@ -43,61 +43,73 @@ VALID_CHARACTERIZATION_METHODS = {
         "valid_inputs": ["point"],
         "attribute_required": False,
         "supports_weights": False,
+        "supports_parallel": False,
     },
     "sum attribute": {
         "valid_inputs": ["point"],
         "attribute_required": True,
         "supports_weights": False,
+        "supports_parallel": False,
     },
     "sum length": {
         "valid_inputs": ["line"],
         "attribute_required": False,
         "supports_weights": False,
+        "supports_parallel": False,
     },
     "sum attribute-length": {
         "valid_inputs": ["line"],
         "attribute_required": True,
         "supports_weights": False,
+        "supports_parallel": False,
     },
     "sum area": {
         "valid_inputs": ["polygon"],
         "attribute_required": False,
         "supports_weights": False,
+        "supports_parallel": False,
     },
     "area-weighted average": {
         "valid_inputs": ["polygon"],
         "attribute_required": True,
         "supports_weights": False,
+        "supports_parallel": False,
     },
     "percent covered": {
         "valid_inputs": ["polygon"],
         "attribute_required": False,
         "supports_weights": False,
+        "supports_parallel": False,
     },
     "area-apportioned sum": {
         "valid_inputs": ["polygon"],
         "attribute_required": True,
         "supports_weights": False,
+        "supports_parallel": False,
     },
     "mean": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
         "supports_weights": True,
+        "supports_parallel": True,
     },
     "median": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
         "supports_weights": False,
+        "supports_parallel": True,
     },
     "sum": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
         "supports_weights": True,
+        "supports_parallel": True,
     },
     "area": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
         "supports_weights": False,
+        "supports_parallel": True,
     },
 }
 
@@ -141,6 +153,7 @@ class Characterization(BaseModelStrict):
     method: constr(to_lower=True)
     attribute: Optional[str] = None
     weights_dset: Optional[str] = None
+    parallel: Optional[bool] = True
     neighbor_order: Optional[NonNegativeInt] = 0
     buffer_distance: Optional[float] = 0.0
     # Derived dynamically
@@ -296,13 +309,29 @@ class Characterization(BaseModelStrict):
     def weights_dset_check(self):
         """
         Check that, if weights_dset is provided, the selected method is applicable
-        to rasters. If not, warn the user.
+        to the method. If not, warn the user.
         """
         if self.weights_dset:
             method_info = VALID_CHARACTERIZATION_METHODS.get(self.method)
             if not method_info.get("supports_weights"):
                 warnings.warn(
                     f"weights_dset specified but will not be applied for {self.method}"
+                )
+
+        return self
+
+    @model_validator(mode="after")
+    def parallel_check(self):
+        """
+        Check that, if parallel is set to True, the selected method can be
+        parallelized. If not, warn the user.
+        """
+        if self.parallel:
+            method_info = VALID_CHARACTERIZATION_METHODS.get(self.method)
+            if not method_info.get("supports_parallel"):
+                warnings.warn(
+                    "parallel specified as True but will not be applied for "
+                    f"{self.method}"
                 )
 
         return self
