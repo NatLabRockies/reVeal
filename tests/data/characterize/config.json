@@ -13,6 +13,13 @@
       "attribute": "net_generation_megawatthours",
       "parallel": false
     },
+    "generator_low_cf_mwh": {
+      "dset": "vectors/generators.gpkg",
+      "method": "sum attribute",
+      "attribute": "net_generation_megawatthours",
+      "where": "capacity_factor < 0.5",
+      "parallel": false
+    },
     "tline_length": {
       "dset": "vectors/tlines.gpkg",
       "method": "sum length",
