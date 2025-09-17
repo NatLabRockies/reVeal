@@ -13,6 +13,7 @@ from geopandas.io.arrow import (
     _validate_and_decode_metadata,
 )
 from pyogrio._ogr import _get_drivers_for_path
+import numpy as np
 
 
 GEOMETRY_TYPES = {
@@ -48,7 +49,7 @@ def get_geom_info_parquet(dset_src):
 
 def get_geom_type_parquet(dset_src):
     """
-    Determine the generic geometry type of of an input GeoParquet dataset.
+    Determine the generic geometry type of an input GeoParquet dataset.
 
     Parameters
     ----------
@@ -117,6 +118,62 @@ def get_geom_type_pyogrio(dset_src):
         )
 
     return geom_type
+
+
+def get_attributes_parquet(dset_src):
+    """
+    Get the attributes and their corresponding data types from an input GeoParquet
+    dataset.
+
+    Parameters
+    ----------
+    dset_src : str
+        Path to vector dataset.
+
+    Returns
+    -------
+    dict
+        Dictionary with keys indicating attribute names and values indicating their
+        corresponding datatypes.
+    """
+    schema, metadata = _read_parquet_schema_and_metadata(dset_src, None)
+    geo_metadata = _validate_and_decode_metadata(metadata)
+    geom_col = geo_metadata["primary_column"]
+
+    attributes = {}
+    for name, dtype in zip(schema.names, schema.types):
+        if name in [geom_col, "bbox"]:
+            continue
+        try:
+            pd_dtype = dtype.to_pandas_dtype()
+        except NotImplementedError:
+            pd_dtype = np.object_
+        attributes[name] = pd_dtype
+
+    return attributes
+
+
+def get_attributes_pyogrio(dset_src):
+    """
+    Get the attributes and their corresponding data types from a vector dataset that
+    can be opened with pyogrio.
+
+    Parameters
+    ----------
+    dset_src : str
+        Path to vector dataset.
+
+    Returns
+    -------
+    dict
+        Dictionary with keys indicating attribute names and values indicating their
+        corresponding datatypes.
+    """
+    dset_info = pyogrio.read_info(dset_src)
+    dtypes = [np.dtype(t).type for t in dset_info["dtypes"]]
+    attributes = dict(zip(dset_info["fields"], dtypes))
+
+    return attributes
 
 
 def get_crs_raster(dset_src):
