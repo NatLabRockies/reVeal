@@ -398,4 +398,4 @@ def test_calc_area(data_dir, base_grid, weighted):
 
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-s", "-k", "test_calc_area"])
+    pytest.main([__file__, "-s"])
