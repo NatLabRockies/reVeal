@@ -48,72 +48,84 @@ VALID_CHARACTERIZATION_METHODS = {
         "attribute_required": False,
         "supports_weights": False,
         "supports_parallel": False,
+        "supports_where": True,
     },
     "sum attribute": {
         "valid_inputs": ["point"],
         "attribute_required": True,
         "supports_weights": False,
         "supports_parallel": False,
+        "supports_where": True,
     },
     "sum length": {
         "valid_inputs": ["line"],
         "attribute_required": False,
         "supports_weights": False,
         "supports_parallel": False,
+        "supports_where": True,
     },
     "sum attribute-length": {
         "valid_inputs": ["line"],
         "attribute_required": True,
         "supports_weights": False,
         "supports_parallel": False,
+        "supports_where": True,
     },
     "sum area": {
         "valid_inputs": ["polygon"],
         "attribute_required": False,
         "supports_weights": False,
         "supports_parallel": False,
+        "supports_where": True,
     },
     "area-weighted average": {
         "valid_inputs": ["polygon"],
         "attribute_required": True,
         "supports_weights": False,
         "supports_parallel": False,
+        "supports_where": True,
     },
     "percent covered": {
         "valid_inputs": ["polygon"],
         "attribute_required": False,
         "supports_weights": False,
         "supports_parallel": False,
+        "supports_where": True,
     },
     "area-apportioned sum": {
         "valid_inputs": ["polygon"],
         "attribute_required": True,
         "supports_weights": False,
         "supports_parallel": False,
+        "supports_where": True,
     },
     "mean": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
         "supports_weights": True,
         "supports_parallel": True,
+        "supports_where": False,
     },
     "median": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
         "supports_weights": False,
         "supports_parallel": True,
+        "supports_where": False,
     },
     "sum": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
         "supports_weights": True,
         "supports_parallel": True,
+        "supports_where": False,
     },
     "area": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
         "supports_weights": True,
         "supports_parallel": True,
+        "supports_where": False,
     },
 }
 
@@ -160,6 +172,7 @@ class Characterization(BaseModelStrict):
     parallel: Optional[bool] = True
     neighbor_order: Optional[NonNegativeInt] = 0
     buffer_distance: Optional[float] = 0.0
+    where: Optional[str] = None
     # Derived dynamically
     dset_src: FilePath
     dset_format: Optional[DatasetFormatEnum] = None
@@ -247,6 +260,24 @@ class Characterization(BaseModelStrict):
             raise TypeError(f"Unsupported file format for for {self.dset_src}.")
 
         self.dset_format = DatasetFormatEnum(dset_format)
+
+        return self
+
+    @model_validator(mode="after")
+    def where_check(self):
+        """
+        Check that entry for where does not contain any questionable code.
+        Also issues a warning if where is specified but doesn't apply to the specified
+        method.
+        """
+        if self.where:
+            # always check, even if it doesn't apply (overkill, but just in case)
+            check_eval_str(self.where)
+            method_info = VALID_CHARACTERIZATION_METHODS.get(self.method)
+            if not method_info.get("supports_where"):
+                warnings.warn(
+                    f"where specified but will not be applied for {self.method}"
+                )
 
         return self
 
@@ -415,7 +446,7 @@ class CharacterizeConfig(BaseModelStrict):
     def validate_expressions(cls, value):
         """
         Check that each entry in the expressions dictionary is a string and does not
-        have any questionable code.
+        contain any questionable code.
 
         Parameters
         ----------
