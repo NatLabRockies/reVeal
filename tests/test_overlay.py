@@ -2,6 +2,8 @@
 """
 overlay module tests
 """
+import inspect
+
 import pytest
 from geopandas.testing import assert_geodataframe_equal
 import pandas as pd
@@ -22,34 +24,44 @@ from reVeal.overlay import (
     calc_sum,
     calc_area,
 )
+from reVeal.grid import get_overlay_method
+from reVeal.config import VALID_CHARACTERIZATION_METHODS
 
 
-def test_calc_feature_count(data_dir, base_grid):
+@pytest.mark.parametrize("where", [None, "capacity_factor < 0.5"])
+def test_calc_feature_count(data_dir, base_grid, where):
     """
     Unit tests for calc_feature_count().
     """
     zones_df = base_grid.df
     dset_src = data_dir / "characterize" / "vectors" / "generators.gpkg"
-    results = calc_feature_count(zones_df, dset_src)
+    results = calc_feature_count(zones_df, dset_src, where=where)
 
     results_df = pd.concat([zones_df, results], axis=1)
     results_df.reset_index(inplace=True)
 
-    expected_results_src = data_dir / "overlays" / "feature_count_results.gpkg"
+    if where:
+        expected_results_src = (
+            data_dir / "overlays" / "feature_count_results_filtered.gpkg"
+        )
+    else:
+        expected_results_src = data_dir / "overlays" / "feature_count_results.gpkg"
+
     expected_df = gpd.read_file(expected_results_src)
 
     assert_geodataframe_equal(results_df, expected_df, check_like=True)
 
 
 @pytest.mark.parametrize(
-    "attribute,exception_type",
+    "attribute,where,exception_type",
     [
-        ("net_generation_megawatthours", None),
-        ("utility_name", TypeError),
-        ("not_a_column", KeyError),
+        ("net_generation_megawatthours", None, None),
+        ("utility_name", None, TypeError),
+        ("not_a_column", None, KeyError),
+        ("net_generation_megawatthours", "capacity_factor < 0.5", None),
     ],
 )
-def test_calc_sum_attribute(data_dir, base_grid, attribute, exception_type):
+def test_calc_sum_attribute(data_dir, base_grid, attribute, where, exception_type):
     """
     Unit tests for calc_sum_attribute().
     """
@@ -58,50 +70,74 @@ def test_calc_sum_attribute(data_dir, base_grid, attribute, exception_type):
 
     if exception_type:
         with pytest.raises(exception_type):
-            calc_sum_attribute(zones_df, dset_src, attribute)
+            calc_sum_attribute(zones_df, dset_src, attribute, where=where)
     else:
-        results = calc_sum_attribute(zones_df, dset_src, attribute)
+        results = calc_sum_attribute(zones_df, dset_src, attribute, where=where)
 
         results_df = pd.concat([zones_df, results], axis=1)
         results_df.reset_index(inplace=True)
 
-        expected_results_src = data_dir / "overlays" / "feature_sum_results.gpkg"
+        if where:
+            expected_results_src = (
+                data_dir / "overlays" / "feature_sum_results_filtered.gpkg"
+            )
+        else:
+            expected_results_src = data_dir / "overlays" / "feature_sum_results.gpkg"
         expected_df = gpd.read_file(expected_results_src)
 
         assert_geodataframe_equal(results_df, expected_df, check_like=True)
 
 
 @pytest.mark.parametrize(
-    "dset_name", ["tlines.gpkg", "generators.gpkg", "fiber_to_the_premises.gpkg"]
+    "dset_name,where",
+    [
+        ("tlines", None),
+        ("generators", None),
+        ("fiber_to_the_premises", None),
+        ("tlines", "(VOLTAGE == 345) & (OWNER == 'CENTERPOINT ENERGY')"),
+        ("generators", "capacity_factor < 0.5"),
+        ("fiber_to_the_premises", "max_advertised_upload_speed < 50"),
+    ],
 )
-def test_calc_sum_length(data_dir, base_grid, dset_name):
+def test_calc_sum_length(data_dir, base_grid, dset_name, where):
     """
     Unit tests for calc_sum_length().
     """
 
     zones_df = base_grid.df
-    dset_src = data_dir / "characterize" / "vectors" / dset_name
+    dset_src = data_dir / "characterize" / "vectors" / f"{dset_name}.gpkg"
 
-    results = calc_sum_length(zones_df, dset_src)
+    results = calc_sum_length(zones_df, dset_src, where=where)
 
     results_df = pd.concat([zones_df, results], axis=1)
     results_df.reset_index(inplace=True)
 
-    expected_results_src = data_dir / "overlays" / f"sum_length_results_{dset_name}"
+    if where:
+        expected_results_src = (
+            data_dir / "overlays" / f"sum_length_results_{dset_name}_filtered.gpkg"
+        )
+    else:
+        expected_results_src = (
+            data_dir / "overlays" / f"sum_length_results_{dset_name}.gpkg"
+        )
+
     expected_df = gpd.read_file(expected_results_src)
 
     assert_geodataframe_equal(results_df, expected_df, check_like=True)
 
 
 @pytest.mark.parametrize(
-    "attribute,exception_type",
+    "attribute,where,exception_type",
     [
-        ("VOLTAGE", None),
-        ("INFERRED", TypeError),
-        ("not_a_column", KeyError),
+        ("VOLTAGE", None, None),
+        ("INFERRED", None, TypeError),
+        ("not_a_column", None, KeyError),
+        ("VOLTAGE", "(VOLTAGE == 345) & (OWNER == 'CENTERPOINT ENERGY')", None),
     ],
 )
-def test_calc_sum_attribute_length(data_dir, base_grid, attribute, exception_type):
+def test_calc_sum_attribute_length(
+    data_dir, base_grid, attribute, where, exception_type
+):
     """
     Unit tests for calc_sum_attribute().
     """
@@ -110,30 +146,36 @@ def test_calc_sum_attribute_length(data_dir, base_grid, attribute, exception_typ
 
     if exception_type:
         with pytest.raises(exception_type):
-            calc_sum_attribute_length(zones_df, dset_src, attribute)
+            calc_sum_attribute_length(zones_df, dset_src, attribute, where=where)
     else:
-        results = calc_sum_attribute_length(zones_df, dset_src, attribute)
+        results = calc_sum_attribute_length(zones_df, dset_src, attribute, where=where)
 
         results_df = pd.concat([zones_df, results], axis=1)
         results_df.reset_index(inplace=True)
 
-        expected_results_src = (
-            data_dir / "overlays" / "sum_attribute_length_results.gpkg"
-        )
+        if where:
+            expected_results_src = (
+                data_dir / "overlays" / "sum_attribute_length_results_filtered.gpkg"
+            )
+        else:
+            expected_results_src = (
+                data_dir / "overlays" / "sum_attribute_length_results.gpkg"
+            )
         expected_df = gpd.read_file(expected_results_src)
 
         assert_geodataframe_equal(results_df, expected_df, check_like=True)
 
 
 @pytest.mark.parametrize(
-    "dset_name,all_zeros",
+    "dset_name,where,all_zeros",
     [
-        ("fiber_to_the_premises.gpkg", False),
-        ("tlines.gpkg", True),
-        ("generators.gpkg", True),
+        ("fiber_to_the_premises.gpkg", None, False),
+        ("tlines.gpkg", None, True),
+        ("generators.gpkg", None, True),
+        ("fiber_to_the_premises.gpkg", "max_advertised_upload_speed < 50", False),
     ],
 )
-def test_calc_sum_area(data_dir, base_grid, dset_name, all_zeros):
+def test_calc_sum_area(data_dir, base_grid, dset_name, where, all_zeros):
     """
     Unit tests for calc_sum_area().
     """
@@ -141,28 +183,35 @@ def test_calc_sum_area(data_dir, base_grid, dset_name, all_zeros):
     zones_df = base_grid.df
     dset_src = data_dir / "characterize" / "vectors" / dset_name
 
-    results = calc_sum_area(zones_df, dset_src)
+    results = calc_sum_area(zones_df, dset_src, where=where)
     if all_zeros:
         assert (results["value"] == 0).all(), "Results are not all zero as expected"
     else:
         results_df = pd.concat([zones_df, results], axis=1)
         results_df.reset_index(inplace=True)
 
-        expected_results_src = data_dir / "overlays" / "sum_area_results.gpkg"
+        if where:
+            expected_results_src = (
+                data_dir / "overlays" / "sum_area_results_filtered.gpkg"
+            )
+        else:
+            expected_results_src = data_dir / "overlays" / "sum_area_results.gpkg"
+
         expected_df = gpd.read_file(expected_results_src)
 
         assert_geodataframe_equal(results_df, expected_df, check_like=True)
 
 
 @pytest.mark.parametrize(
-    "dset_name,all_zeros",
+    "dset_name,where,all_zeros",
     [
-        ("fiber_to_the_premises.gpkg", False),
-        ("tlines.gpkg", True),
-        ("generators.gpkg", True),
+        ("fiber_to_the_premises.gpkg", None, False),
+        ("tlines.gpkg", None, True),
+        ("generators.gpkg", None, True),
+        ("fiber_to_the_premises.gpkg", "max_advertised_upload_speed < 50", False),
     ],
 )
-def test_calc_percent_covered(data_dir, base_grid, dset_name, all_zeros):
+def test_calc_percent_covered(data_dir, base_grid, dset_name, where, all_zeros):
     """
     Unit tests for calc_percent_covered().
     """
@@ -170,31 +219,51 @@ def test_calc_percent_covered(data_dir, base_grid, dset_name, all_zeros):
     zones_df = base_grid.df
     dset_src = data_dir / "characterize" / "vectors" / dset_name
 
-    results = calc_percent_covered(zones_df, dset_src)
+    results = calc_percent_covered(zones_df, dset_src, where=where)
     if all_zeros:
         assert (results["value"] == 0).all(), "Results are not all zero as expected"
     else:
         results_df = pd.concat([zones_df, results], axis=1)
         results_df.reset_index(inplace=True)
 
-        expected_results_src = data_dir / "overlays" / "percent_covered_results.gpkg"
+        if where:
+            expected_results_src = (
+                data_dir / "overlays" / "percent_covered_results_filtered.gpkg"
+            )
+        else:
+            expected_results_src = (
+                data_dir / "overlays" / "percent_covered_results.gpkg"
+            )
         expected_df = gpd.read_file(expected_results_src)
 
         assert_geodataframe_equal(results_df, expected_df, check_like=True)
 
 
 @pytest.mark.parametrize(
-    "dset_name,attribute,exception_type,all_nans",
+    "dset_name,attribute,where,exception_type,all_nans",
     [
-        ("fiber_to_the_premises.gpkg", "max_advertised_upload_speed", None, False),
-        ("tlines.gpkg", "VOLTAGE", None, True),
-        ("generators.gpkg", "net_generation_megawatthours", None, True),
-        ("fiber_to_the_premises.gpkg", "h3_res8_id", TypeError, False),
-        ("fiber_to_the_premises.gpkg", "not_a_column", KeyError, False),
+        (
+            "fiber_to_the_premises.gpkg",
+            "max_advertised_upload_speed",
+            None,
+            None,
+            False,
+        ),
+        ("tlines.gpkg", "VOLTAGE", None, None, True),
+        ("generators.gpkg", "net_generation_megawatthours", None, None, True),
+        ("fiber_to_the_premises.gpkg", "h3_res8_id", None, TypeError, False),
+        ("fiber_to_the_premises.gpkg", "not_a_column", None, KeyError, False),
+        (
+            "fiber_to_the_premises.gpkg",
+            "max_advertised_upload_speed",
+            "max_advertised_upload_speed <= 50",
+            None,
+            False,
+        ),
     ],
 )
 def test_calc_area_weighted_average(
-    data_dir, base_grid, dset_name, attribute, exception_type, all_nans
+    data_dir, base_grid, dset_name, attribute, where, exception_type, all_nans
 ):
     """
     Unit tests for calc_area_weighted_average().
@@ -205,35 +274,55 @@ def test_calc_area_weighted_average(
 
     if exception_type:
         with pytest.raises(exception_type):
-            calc_area_weighted_average(zones_df, dset_src, attribute)
+            calc_area_weighted_average(zones_df, dset_src, attribute, where=where)
     else:
-        results = calc_area_weighted_average(zones_df, dset_src, attribute)
+        results = calc_area_weighted_average(zones_df, dset_src, attribute, where=where)
         if all_nans:
             assert (results["value"].isna()).all(), "Results are not all NA as expected"
         else:
             results_df = pd.concat([zones_df, results], axis=1)
             results_df.reset_index(inplace=True)
 
-            expected_results_src = (
-                data_dir / "overlays" / "area_weighted_average_results.gpkg"
-            )
+            if where:
+                expected_results_src = (
+                    data_dir
+                    / "overlays"
+                    / "area_weighted_average_results_filtered.gpkg"
+                )
+            else:
+                expected_results_src = (
+                    data_dir / "overlays" / "area_weighted_average_results.gpkg"
+                )
             expected_df = gpd.read_file(expected_results_src)
 
             assert_geodataframe_equal(results_df, expected_df, check_like=True)
 
 
 @pytest.mark.parametrize(
-    "dset_name,attribute,exception_type,all_zeros",
+    "dset_name,attribute,where,exception_type,all_zeros",
     [
-        ("fiber_to_the_premises.gpkg", "max_advertised_upload_speed", None, False),
-        ("tlines.gpkg", "VOLTAGE", None, True),
-        ("generators.gpkg", "net_generation_megawatthours", None, True),
-        ("fiber_to_the_premises.gpkg", "h3_res8_id", TypeError, False),
-        ("fiber_to_the_premises.gpkg", "not_a_column", KeyError, False),
+        (
+            "fiber_to_the_premises.gpkg",
+            "max_advertised_upload_speed",
+            None,
+            None,
+            False,
+        ),
+        ("tlines.gpkg", "VOLTAGE", None, None, True),
+        ("generators.gpkg", "net_generation_megawatthours", None, None, True),
+        ("fiber_to_the_premises.gpkg", "h3_res8_id", None, TypeError, False),
+        ("fiber_to_the_premises.gpkg", "not_a_column", None, KeyError, False),
+        (
+            "fiber_to_the_premises.gpkg",
+            "max_advertised_upload_speed",
+            "max_advertised_upload_speed <= 50",
+            None,
+            False,
+        ),
     ],
 )
 def test_calc_area_apportioned_sum(
-    data_dir, base_grid, dset_name, attribute, exception_type, all_zeros
+    data_dir, base_grid, dset_name, attribute, where, exception_type, all_zeros
 ):
     """
     Unit tests for calc_area_weighted_average().
@@ -244,18 +333,23 @@ def test_calc_area_apportioned_sum(
 
     if exception_type:
         with pytest.raises(exception_type):
-            calc_area_apportioned_sum(zones_df, dset_src, attribute)
+            calc_area_apportioned_sum(zones_df, dset_src, attribute, where=where)
     else:
-        results = calc_area_apportioned_sum(zones_df, dset_src, attribute)
+        results = calc_area_apportioned_sum(zones_df, dset_src, attribute, where=where)
         if all_zeros:
             assert (results["value"] == 0).all(), "Results are not all zero as expected"
         else:
             results_df = pd.concat([zones_df, results], axis=1)
             results_df.reset_index(inplace=True)
 
-            expected_results_src = (
-                data_dir / "overlays" / "area_apportioned_sum_results.gpkg"
-            )
+            if where:
+                expected_results_src = (
+                    data_dir / "overlays" / "area_apportioned_sum_results_filtered.gpkg"
+                )
+            else:
+                expected_results_src = (
+                    data_dir / "overlays" / "area_apportioned_sum_results.gpkg"
+                )
             expected_df = gpd.read_file(expected_results_src)
 
             assert_geodataframe_equal(results_df, expected_df, check_like=True)
@@ -395,6 +489,27 @@ def test_calc_area(data_dir, base_grid, weighted):
     expected_df = gpd.read_file(expected_results_src)
 
     assert_geodataframe_equal(results_df, expected_df, check_like=True)
+
+
+def test_check_where():
+    """
+    Check that overlay that are specified in the config as supporting use of a where
+    clause have a where argument in their function signature. Since there logic of
+    the where clause is applied within each applicable overlay method, this is
+    effectively a backstop to ensure that, at a minimum, the function accepts it as
+    an input. Note that it does not actually ensure that the `where` argument is
+    actually passed to read_vectors(), which is where it is actually applied.
+    """
+    where_methods = [
+        m for m, i in VALID_CHARACTERIZATION_METHODS.items() if i.get("supports_where")
+    ]
+    for method in where_methods:
+        overlay_method = get_overlay_method(method)
+        args = inspect.getfullargspec(overlay_method).args
+        assert "where" in args, (
+            f"Function calc_{overlay_method} is identified as supporting where clause "
+            "but does not have a where argument in its signature"
+        )
 
 
 if __name__ == "__main__":

@@ -245,7 +245,7 @@ def get_crs_parquet(dset_src):
     return authority_code
 
 
-def read_vectors(vector_src):
+def read_vectors(vector_src, where=None):
     """
     Read vector dataset in GeoParquet or pyogrio-compatible format to GeoDataFrame.
 
@@ -253,6 +253,10 @@ def read_vectors(vector_src):
     ----------
     vector_src : str
         Path to vector dataset.
+    where : str, optional
+        Optional query string to apply to the input vector_src to subset the features
+        included in the results. Should follow the format `expr` defined in
+        pandas.DataFrame.query.
 
     Returns
     -------
@@ -267,12 +271,17 @@ def read_vectors(vector_src):
     """
 
     if Path(vector_src).suffix == ".parquet":
-        return gpd.read_parquet(vector_src)
+        df = gpd.read_parquet(vector_src)
+    elif _get_drivers_for_path(vector_src):
+        df = gpd.read_file(vector_src)
+    else:
+        raise IOError(
+            f"Unable to read vectors from input file {vector_src}. "
+            "Not a recognized vector format."
+        )
 
-    if _get_drivers_for_path(vector_src):
-        return gpd.read_file(vector_src)
+    if where:
+        sub_df = df.query(where, global_dict={}, local_dict={})
+        return sub_df
 
-    raise IOError(
-        f"Unable to read vectors from input file {vector_src}. "
-        "Not a recognized vector format."
-    )
+    return df

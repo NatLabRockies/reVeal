@@ -4,6 +4,7 @@ io module tests
 """
 import pytest
 import numpy as np
+from pandas.errors import UndefinedVariableError
 
 from reVeal.fileio import (
     get_geom_info_parquet,
@@ -142,24 +143,50 @@ def test_get_crs_parquet(data_dir):
 
 
 @pytest.mark.parametrize(
-    "vector_src,error_expected",
+    "vector_src,error_expected,where,row_count",
     [
-        ("rasters/developable.tif", True),
-        ("vectors/generators.gpkg", False),
-        ("vectors/generators.parquet", False),
+        ("rasters/developable.tif", True, None, None),
+        ("vectors/generators.gpkg", False, None, 12),
+        ("vectors/generators.parquet", False, None, 12),
+        ("vectors/generators.gpkg", False, "capacity_factor < 0.5", 9),
+        ("vectors/generators.parquet", False, "capacity_factor < 0.05", 7),
     ],
 )
-def test_read_vectors(data_dir, vector_src, error_expected):
+def test_read_vectors(data_dir, vector_src, error_expected, where, row_count):
     """
     Test for read_vectors() for different input file formats.
     """
     vector_src_path = data_dir / "characterize" / vector_src
     if error_expected:
         with pytest.raises(IOError, match="Unable to read vectors from input file.*"):
-            read_vectors(vector_src_path)
+            read_vectors(vector_src_path, where=where)
     else:
-        df = read_vectors(vector_src_path)
-        assert len(df) == 12, "Unexpected row count in GeoDataFrame"
+        df = read_vectors(vector_src_path, where=where)
+        assert len(df) == row_count, "Unexpected row count in GeoDataFrame"
+
+
+@pytest.mark.parametrize(
+    "bad_expression,err",
+    [
+        ("@gpd.pd.compat.os.system('echo foo')", UndefinedVariableError),
+        ("os.system('echo foo')", UndefinedVariableError),
+        ("import os", NotImplementedError),
+    ],
+)
+def test_read_vectors_with_expression_injection(data_dir, capfd, bad_expression, err):
+    """
+    Unit test that ensures that attempts to inject system level commmands using
+    where clause does not work.
+    """
+    vector_src_path = data_dir / "characterize/vectors/generators.gpkg"
+
+    with pytest.raises(err):
+        read_vectors(vector_src_path, where=bad_expression)
+
+    captured_stdout = capfd.readouterr().out
+    assert (
+        captured_stdout == ""
+    ), "stdout is not empty. Injection occurred via dataframe.eval()."
 
 
 if __name__ == "__main__":

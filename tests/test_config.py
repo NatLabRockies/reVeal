@@ -41,6 +41,9 @@ NONPARALLEL_METHODS = [
     for k, v in VALID_CHARACTERIZATION_METHODS.items()
     if not v.get("supports_parallel")
 ]
+NONWHERE_METHODS = [
+    k for k, v in VALID_CHARACTERIZATION_METHODS.items() if not v.get("supports_where")
+]
 
 
 @pytest.mark.parametrize(
@@ -70,27 +73,47 @@ def test_datasetformatenum(value, error_expected):
         DatasetFormatEnum(value)
 
 
-@pytest.mark.parametrize("weights_dset", [None, "characterize/rasters/developable.tif"])
+@pytest.mark.parametrize(
+    "dset,method,weights_dset,where,parallel",
+    [
+        (
+            "rasters/fiber_lines_onshore_proximity.tif",
+            "mean",
+            "characterize/rasters/developable.tif",
+            None,
+            True,
+        ),
+        ("rasters/fiber_lines_onshore_proximity.tif", "mean", None, None, False),
+        ("vectors/generators.gpkg", "feature count", None, "value > 1", False),
+        ("vectors/generators.gpkg", "feature count", None, None, False),
+    ],
+)
 @pytest.mark.parametrize("neighbor_order", [None, 0, 1, 50.0])
 @pytest.mark.parametrize("buffer_distance", [None, -100, 100])
 def test_characterization_valid_optional_params(
     data_dir,
+    dset,
+    method,
     weights_dset,
     neighbor_order,
     buffer_distance,
+    where,
+    parallel,
 ):
     """
     Test Characterization class with valid inputs for optional parameters.
     """
 
     value = {
-        "dset": "characterize/rasters/fiber_lines_onshore_proximity.tif",
+        "dset": f"characterize/{dset}",
         "data_dir": data_dir,
-        "method": "mean",
+        "method": method,
         "attribute": None,
         "weights_dset": weights_dset,
         "neighbor_order": neighbor_order,
         "buffer_distance": buffer_distance,
+        "where": where,
+        "parallel": parallel,
     }
 
     Characterization(**value)
@@ -326,6 +349,44 @@ def test_characterization_superfluous_parallel(data_dir, method):
         Characterization(**value)
 
 
+@pytest.mark.parametrize("method", NONWHERE_METHODS)
+def test_characterization_superfluous_where(data_dir, method):
+    """
+    Test Characterization class raises warning when where is specified but
+    not applicable to the method.
+    """
+    geom_type = VALID_CHARACTERIZATION_METHODS.get(method).get("valid_inputs")[0]
+    attribute = None
+
+    dset = None
+    if geom_type == "point":
+        dset = "characterize/vectors/generators.gpkg"
+        if VALID_CHARACTERIZATION_METHODS.get(method).get("attribute_required"):
+            attribute = "net_generation_megawatthours"
+    elif geom_type == "line":
+        dset = "characterize/vectors/tlines.gpkg"
+        if VALID_CHARACTERIZATION_METHODS.get(method).get("attribute_required"):
+            attribute = "VOLTAGE"
+    elif geom_type == "polygon":
+        dset = "characterize/vectors/fiber_to_the_premises.gpkg"
+        if VALID_CHARACTERIZATION_METHODS.get(method).get("attribute_required"):
+            attribute = "max_advertised_upload_speed"
+    elif geom_type == "raster":
+        dset = "characterize/rasters/fiber_lines_onshore_proximity.tif"
+    else:
+        raise ValueError("Unrecognized geom_type")
+
+    value = {
+        "dset": dset,
+        "data_dir": data_dir,
+        "method": method,
+        "attribute": attribute,
+        "where": "value > 1",
+    }
+    with pytest.warns(UserWarning, match="where specified but will not be applied.*"):
+        Characterization(**value)
+
+
 @pytest.mark.parametrize(
     "field,value,err",
     [
@@ -387,6 +448,30 @@ def test_characterization_invalid_attributes(data_dir, dset, dset_ext, attribute
     else:
         err_msg = "Must be a numeric dtype"
     with pytest.raises(err, match=err_msg):
+        Characterization(**value)
+
+
+@pytest.mark.parametrize(
+    "bad_where",
+    [
+        "@pd.compat.os.system('echo foo)",
+        "os.system('echo foo')",
+        "print(sys.executable)",
+        "import time",
+    ],
+)
+def test_characterization_where_injection(data_dir, bad_where):
+    """
+    Test that validation catches questionable inputs for where.
+    """
+
+    value = {
+        "dset": "characterize/vectors/generators.gpkg",
+        "data_dir": data_dir,
+        "method": "feature count",
+        "where": bad_where,
+    }
+    with pytest.raises(ValueError, match="Will not eval().*"):
         Characterization(**value)
 
 

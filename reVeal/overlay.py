@@ -33,7 +33,7 @@ def exact_extract_wrap(*args, **kwargs):
     return exact_extract(*args, **kwargs)
 
 
-def calc_feature_count(zones_df, dset_src, **kwargs):
+def calc_feature_count(zones_df, dset_src, where=None, **kwargs):
     """
     Calculate the count of features intersecting each zone in input zones dataframe.
 
@@ -46,6 +46,10 @@ def calc_feature_count(zones_df, dset_src, **kwargs):
     dset_src : str
         Path to input vector dataset to be counted. Must be in the same CRS as
         the zones_df.
+    where : str, optional
+        Optional query string to apply to the input dset_src to subset the features
+        included in the results. Should follow the format `expr` defined in
+        pandas.DataFrame.query.
     **kwargs
         Arbitrary keyword arguments. Note that none of these are used, but this
         allows passing an arbitrary dictionary that includes both used and unused
@@ -58,7 +62,7 @@ def calc_feature_count(zones_df, dset_src, **kwargs):
         of features in each zone. The index from the input zones_df is also included.
     """
 
-    features_df = read_vectors(dset_src)
+    features_df = read_vectors(dset_src, where=where)
     features_df["feature_count"] = 1
     join_df = gpd.sjoin(
         zones_df[["geometry"]],
@@ -73,7 +77,7 @@ def calc_feature_count(zones_df, dset_src, **kwargs):
     return counts_df
 
 
-def calc_sum_attribute(zones_df, dset_src, attribute, **kwargs):
+def calc_sum_attribute(zones_df, dset_src, attribute, where=None, **kwargs):
     """
     Calculate the sum of the specified attribute for all features intersecting each
     zone in input zones dataframe. If no features intersect a given zone, a value of
@@ -90,6 +94,10 @@ def calc_sum_attribute(zones_df, dset_src, attribute, **kwargs):
         CRS as the zones_df.
     attribute : str
         Name of attribute in dset_src to sum.
+    where : str, optional
+        Optional query string to apply to the input dset_src to subset the features
+        included in the results. Should follow the format `expr` defined in
+        pandas.DataFrame.query.
     **kwargs :
         Arbitrary keyword arguments. Note that none of these are used, but this
         allows passing an arbitrary dictionary that includes both used and unused
@@ -103,7 +111,7 @@ def calc_sum_attribute(zones_df, dset_src, attribute, **kwargs):
         also included.
     """
 
-    features_df = read_vectors(dset_src)
+    features_df = read_vectors(dset_src, where=where)
     if attribute not in features_df.columns:
         raise KeyError(f"attribute {attribute} not a column in {dset_src}")
 
@@ -123,7 +131,7 @@ def calc_sum_attribute(zones_df, dset_src, attribute, **kwargs):
     return sums_df
 
 
-def calc_sum_length(zones_df, dset_src, **kwargs):
+def calc_sum_length(zones_df, dset_src, where=None, **kwargs):
     """
     Calculate the sum of lengths of input features intersecting each zone in input
     zones dataframe.
@@ -140,6 +148,10 @@ def calc_sum_length(zones_df, dset_src, **kwargs):
         checked. Results for Points/MultiPoints will be returned as all zeros, and
         results for Polygons/MultiPolygons will represent perimeters. Must be in the
         same CRS as the zones_df.
+    where : str, optional
+        Optional query string to apply to the input dset_src to subset the features
+        included in the results. Should follow the format `expr` defined in
+        pandas.DataFrame.query.
     **kwargs :
         Arbitrary keyword arguments. Not used, but allows passing extra parameters.
 
@@ -151,7 +163,7 @@ def calc_sum_length(zones_df, dset_src, **kwargs):
         included.
     """
 
-    features_df = read_vectors(dset_src)
+    features_df = read_vectors(dset_src, where=where)
 
     zone_idx = zones_df.index.name
 
@@ -171,7 +183,7 @@ def calc_sum_length(zones_df, dset_src, **kwargs):
     return complete_sums_df
 
 
-def calc_sum_attribute_length(zones_df, dset_src, attribute, **kwargs):
+def calc_sum_attribute_length(zones_df, dset_src, attribute, where=None, **kwargs):
     """
     Calculate the sum of attribute-length of input features intersecting each zone in
     input zones dataframe. Attribute-length is defined as the product of the length
@@ -192,6 +204,10 @@ def calc_sum_attribute_length(zones_df, dset_src, attribute, **kwargs):
         be in the same CRS as the zones_df.
     attribute : str
         Name of attribute in dset_src to use for calculating attribute-lengths.
+    where : str, optional
+        Optional query string to apply to the input dset_src to subset the features
+        included in the results. Should follow the format `expr` defined in
+        pandas.DataFrame.query.
     **kwargs :
         Arbitrary keyword arguments. Not used, but allows passing extra parameters.
 
@@ -203,7 +219,7 @@ def calc_sum_attribute_length(zones_df, dset_src, attribute, **kwargs):
         is also included.
     """
 
-    features_df = read_vectors(dset_src)
+    features_df = read_vectors(dset_src, where=where)
 
     if attribute not in features_df.columns:
         raise KeyError(f"attribute {attribute} not a column in {dset_src}")
@@ -229,7 +245,7 @@ def calc_sum_attribute_length(zones_df, dset_src, attribute, **kwargs):
     return complete_sums_df
 
 
-def calc_sum_area(zones_df, dset_src, **kwargs):
+def calc_sum_area(zones_df, dset_src, where=None, **kwargs):
     """
     Calculate the sum of combined areas of input features intersecting each zone in
     input zones dataframe. Intersecting features are unioned before calculating areas,
@@ -246,6 +262,10 @@ def calc_sum_area(zones_df, dset_src, **kwargs):
         Expected to a be a Polygon or MultiPolygon input, though this is not
         checked. Results for Points/MultiPoints and LineStrings/MultiLineStrings will
         be returned as all zeros. Must be in the same CRS as the zones_df.
+    where : str, optional
+        Optional query string to apply to the input dset_src to subset the features
+        included in the results. Should follow the format `expr` defined in
+        pandas.DataFrame.query.
     **kwargs :
         Arbitrary keyword arguments. Not used, but allows passing extra parameters.
 
@@ -257,7 +277,7 @@ def calc_sum_area(zones_df, dset_src, **kwargs):
         also included.
     """
 
-    features_df = read_vectors(dset_src)
+    features_df = read_vectors(dset_src, where=where)
 
     zone_idx = zones_df.index.name
 
@@ -279,7 +299,7 @@ def calc_sum_area(zones_df, dset_src, **kwargs):
     return areas_df
 
 
-def calc_percent_covered(zones_df, dset_src, **kwargs):
+def calc_percent_covered(zones_df, dset_src, where=None, **kwargs):
     """
     Calculate the percent of each zone covered by the union of the intersecting.
 
@@ -295,6 +315,10 @@ def calc_percent_covered(zones_df, dset_src, **kwargs):
         this is not checked. Results for Points/MultiPoints and
         LineStrings/MultiLineStrings will be returned as all zeros. Must be in the same
         CRS as the zones_df.
+    where : str, optional
+        Optional query string to apply to the input dset_src to subset the features
+        included in the results. Should follow the format `expr` defined in
+        pandas.DataFrame.query.
     **kwargs :
         Arbitrary keyword arguments. Not used, but allows passing extra parameters.
 
@@ -306,7 +330,7 @@ def calc_percent_covered(zones_df, dset_src, **kwargs):
         also included.
     """
 
-    feature_areas_df = calc_sum_area(zones_df, dset_src)
+    feature_areas_df = calc_sum_area(zones_df, dset_src, where=where)
     feature_areas_df.rename(columns={"value": "feature_area"}, inplace=True)
 
     zone_areas_df = pd.DataFrame(zones_df.area, columns=["zone_area"])
@@ -320,7 +344,7 @@ def calc_percent_covered(zones_df, dset_src, **kwargs):
     return all_areas_df[["value"]]
 
 
-def calc_area_weighted_average(zones_df, dset_src, attribute, **kwargs):
+def calc_area_weighted_average(zones_df, dset_src, attribute, where=None, **kwargs):
     """
     Calculate the area-weighted average of the specified attribute for input features
     intersecting each zone in input zones dataframe. Area-weighted average is defined
@@ -350,6 +374,10 @@ def calc_area_weighted_average(zones_df, dset_src, attribute, **kwargs):
         have zero area. Must be in the same CRS as the zones_df.
     attribute : str
         Name of attribute in dset_src to use for calculating area-weighted average.
+    where : str, optional
+        Optional query string to apply to the input dset_src to subset the features
+        included in the results. Should follow the format `expr` defined in
+        pandas.DataFrame.query.
     **kwargs :
         Arbitrary keyword arguments. Not used, but allows passing extra parameters.
 
@@ -361,7 +389,7 @@ def calc_area_weighted_average(zones_df, dset_src, attribute, **kwargs):
         from the input zones_df is also included.
     """
 
-    features_df = read_vectors(dset_src)
+    features_df = read_vectors(dset_src, where=where)
 
     if attribute not in features_df.columns:
         raise KeyError(f"attribute {attribute} not a column in {dset_src}")
@@ -389,7 +417,7 @@ def calc_area_weighted_average(zones_df, dset_src, attribute, **kwargs):
     return complete_avg_df
 
 
-def calc_area_apportioned_sum(zones_df, dset_src, attribute, **kwargs):
+def calc_area_apportioned_sum(zones_df, dset_src, attribute, where=None, **kwargs):
     """
     Calculate the area-apportioned sum of the specified attribute for input features
     intersecting each zone in input zones dataframe. Area-apportioning for each feature
@@ -413,6 +441,10 @@ def calc_area_apportioned_sum(zones_df, dset_src, attribute, **kwargs):
         have zero area. Must be in the same CRS as the zones_df.
     attribute : str
         Name of attribute in dset_src to use for calculating area-weighted average.
+    where : str, optional
+        Optional query string to apply to the input dset_src to subset the features
+        included in the results. Should follow the format `expr` defined in
+        pandas.DataFrame.query.
     **kwargs :
         Arbitrary keyword arguments. Not used, but allows passing extra parameters.
 
@@ -424,7 +456,7 @@ def calc_area_apportioned_sum(zones_df, dset_src, attribute, **kwargs):
         from the input zones_df is also included.
     """
 
-    features_df = read_vectors(dset_src)
+    features_df = read_vectors(dset_src, where=where)
 
     if attribute not in features_df.columns:
         raise KeyError(f"attribute {attribute} not a column in {dset_src}")
