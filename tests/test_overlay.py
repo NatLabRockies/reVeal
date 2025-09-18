@@ -372,19 +372,26 @@ def test_calc_sum(data_dir, base_grid, weighted):
     assert_geodataframe_equal(results_df, expected_df, check_like=True)
 
 
-def test_calc_area(data_dir, base_grid):
+@pytest.mark.parametrize("weighted", [True, False])
+def test_calc_area(data_dir, base_grid, weighted):
     """
     Unit tests for calc_area().
     """
 
     zones_df = base_grid.df
-    dset_src = data_dir / "characterize" / "rasters" / "developable.tif"
+    dset_src = data_dir / "characterize" / "rasters" / "fiber_availability_binary.tif"
+    if weighted:
+        weights_src = data_dir / "characterize" / "rasters" / "developable.tif"
+    else:
+        weights_src = None
 
-    results = calc_area(zones_df, dset_src)
+    results = calc_area(zones_df, dset_src, weights_dset_src=weights_src)
     results_df = pd.concat([zones_df, results], axis=1)
     results_df.reset_index(inplace=True)
 
-    expected_results_src = data_dir / "overlays" / "area_results.gpkg"
+    expected_results_src = (
+        data_dir / "overlays" / f"area_results_weighted_{weighted}.gpkg"
+    )
     expected_df = gpd.read_file(expected_results_src)
 
     assert_geodataframe_equal(results_df, expected_df, check_like=True)

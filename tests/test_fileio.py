@@ -3,6 +3,7 @@
 io module tests
 """
 import pytest
+import numpy as np
 
 from reVeal.fileio import (
     get_geom_info_parquet,
@@ -12,6 +13,8 @@ from reVeal.fileio import (
     get_crs_pyogrio,
     get_crs_parquet,
     read_vectors,
+    get_attributes_parquet,
+    get_attributes_pyogrio,
 )
 
 
@@ -73,6 +76,26 @@ def test_get_geom_type_pyogrio(data_dir, dset_name, expected_geom_type):
     dset_src = data_dir / dset_name
     geom_type = get_geom_type_pyogrio(dset_src)
     assert geom_type == expected_geom_type, "Unexpected geometry type identified"
+
+
+@pytest.mark.parametrize("dset_ext", ["parquet", "gpkg"])
+def test_get_attributes(data_dir, dset_ext):
+    """
+    Test that get_attributes_parquet() and get_attributes_pyogrio() return the same
+    expected results.
+    """
+    dset_src = data_dir / f"characterize/vectors/fiber_to_the_premises.{dset_ext}"
+    if dset_ext == "parquet":
+        attributes = get_attributes_parquet(dset_src)
+    else:
+        attributes = get_attributes_pyogrio(dset_src)
+    expected_attributes = {
+        "h3_res8_id": np.object_,
+        "max_advertised_download_speed": np.int64,
+        "max_advertised_upload_speed": np.int64,
+        "low_latency": np.int64,
+    }
+    assert attributes == expected_attributes, "Attributes do not match expected result"
 
 
 @pytest.mark.parametrize("in_format", ["parquet", "pyogrio"])

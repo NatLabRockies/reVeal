@@ -166,10 +166,16 @@ def test_characterization_valid_methods_and_attributes(data_dir, method, attribu
     dset = None
     if geom_type == "point":
         dset = "characterize/vectors/generators.gpkg"
+        if attribute:
+            attribute = "net_generation_megawatthours"
     elif geom_type == "line":
         dset = "characterize/vectors/tlines.gpkg"
+        if attribute:
+            attribute = "VOLTAGE"
     elif geom_type == "polygon":
         dset = "characterize/vectors/fiber_to_the_premises.gpkg"
+        if attribute:
+            attribute = "max_advertised_upload_speed"
     elif geom_type == "raster":
         dset = "characterize/rasters/fiber_lines_onshore_proximity.tif"
     else:
@@ -246,18 +252,21 @@ def test_characterization_superfluous_weights_dset(data_dir, method):
     not applicable to the method.
     """
     geom_type = VALID_CHARACTERIZATION_METHODS.get(method).get("valid_inputs")[0]
-    if VALID_CHARACTERIZATION_METHODS.get(method).get("attribute_required"):
-        attribute = "a_field"
-    else:
-        attribute = None
+    attribute = None
 
     dset = None
     if geom_type == "point":
         dset = "characterize/vectors/generators.gpkg"
+        if VALID_CHARACTERIZATION_METHODS.get(method).get("attribute_required"):
+            attribute = "net_generation_megawatthours"
     elif geom_type == "line":
         dset = "characterize/vectors/tlines.gpkg"
+        if VALID_CHARACTERIZATION_METHODS.get(method).get("attribute_required"):
+            attribute = "VOLTAGE"
     elif geom_type == "polygon":
         dset = "characterize/vectors/fiber_to_the_premises.gpkg"
+        if VALID_CHARACTERIZATION_METHODS.get(method).get("attribute_required"):
+            attribute = "max_advertised_upload_speed"
     elif geom_type == "raster":
         dset = "characterize/rasters/fiber_lines_onshore_proximity.tif"
     else:
@@ -284,18 +293,21 @@ def test_characterization_superfluous_parallel(data_dir, method):
     not applicable to the method.
     """
     geom_type = VALID_CHARACTERIZATION_METHODS.get(method).get("valid_inputs")[0]
-    if VALID_CHARACTERIZATION_METHODS.get(method).get("attribute_required"):
-        attribute = "a_field"
-    else:
-        attribute = None
+    attribute = None
 
     dset = None
     if geom_type == "point":
         dset = "characterize/vectors/generators.gpkg"
+        if VALID_CHARACTERIZATION_METHODS.get(method).get("attribute_required"):
+            attribute = "net_generation_megawatthours"
     elif geom_type == "line":
         dset = "characterize/vectors/tlines.gpkg"
+        if VALID_CHARACTERIZATION_METHODS.get(method).get("attribute_required"):
+            attribute = "VOLTAGE"
     elif geom_type == "polygon":
         dset = "characterize/vectors/fiber_to_the_premises.gpkg"
+        if VALID_CHARACTERIZATION_METHODS.get(method).get("attribute_required"):
+            attribute = "max_advertised_upload_speed"
     elif geom_type == "raster":
         dset = "characterize/rasters/fiber_lines_onshore_proximity.tif"
     else:
@@ -348,6 +360,34 @@ def test_characterization_extra():
     inputs = {"dset": "test/dset.gpkg", "method": "feature count", "extra_field": 1}
     with pytest.raises(ValidationError, match="Extra inputs.*"):
         Characterization(**inputs)
+
+
+@pytest.mark.parametrize(
+    "dset,attribute,err",
+    [
+        ("characterize/vectors/generators", "volts", ValueError),
+        ("characterize/vectors/generators", "primary_fuel_type", TypeError),
+    ],
+)
+@pytest.mark.parametrize("dset_ext", ["gpkg", "parquet"])
+def test_characterization_invalid_attributes(data_dir, dset, dset_ext, attribute, err):
+    """
+    Check that invalid attributes -- either missing from the input dataset or not
+    a numeric data type -- are caught.
+    """
+
+    value = {
+        "dset": f"{dset}.{dset_ext}",
+        "data_dir": data_dir,
+        "method": "sum attribute",
+        "attribute": attribute,
+    }
+    if err is ValueError:
+        err_msg = f"Attribute {attribute} not found in"
+    else:
+        err_msg = "Must be a numeric dtype"
+    with pytest.raises(err, match=err_msg):
+        Characterization(**value)
 
 
 @pytest.mark.parametrize("drop_expressions", [True, False])

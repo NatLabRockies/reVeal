@@ -19,6 +19,7 @@ from pydantic import (
     NonNegativeInt,
 )
 from rex.utilities import check_eval_str
+from pandas.api.types import is_numeric_dtype
 
 from reVeal.fileio import (
     get_geom_type_pyogrio,
@@ -26,6 +27,8 @@ from reVeal.fileio import (
     get_crs_raster,
     get_crs_pyogrio,
     get_crs_parquet,
+    get_attributes_parquet,
+    get_attributes_pyogrio,
 )
 
 
@@ -109,7 +112,7 @@ VALID_CHARACTERIZATION_METHODS = {
     "area": {
         "valid_inputs": ["raster"],
         "attribute_required": False,
-        "supports_weights": False,
+        "supports_weights": True,
         "supports_parallel": True,
     },
 }
@@ -218,35 +221,6 @@ class Characterization(BaseModelStrict):
         return self
 
     @model_validator(mode="after")
-    def attribute_check(self):
-        """
-        Check that attribute is provided for required methods and warn if attribute
-        is provided for methods where it doesn't apply.
-
-        Raises
-        ------
-        ValueError
-            A ValueError will be raised if attribute is missing for a required method.
-        """
-        method_info = VALID_CHARACTERIZATION_METHODS.get(self.method)
-        if method_info is None or method_info.get("attribute_required") is None:
-            raise ValueError(
-                "Missing information required to determine if attribute is required "
-                f"for the specified method {self.method}"
-            )
-        attribute_required = method_info.get("attribute_required")
-        if attribute_required and self.attribute is None:
-            raise ValueError(
-                f"attribute was not provided, but is required for method {self.method}"
-            )
-        if not attribute_required and self.attribute:
-            warnings.warn(
-                f"attribute specified but will not be applied for {self.method}"
-            )
-
-        return self
-
-    @model_validator(mode="after")
     def set_dset_ext(self):
         """
         Dynamically set the dset_ext property.
@@ -273,6 +247,50 @@ class Characterization(BaseModelStrict):
             raise TypeError(f"Unsupported file format for for {self.dset_src}.")
 
         self.dset_format = DatasetFormatEnum(dset_format)
+
+        return self
+
+    @model_validator(mode="after")
+    def attribute_check(self):
+        """
+        Check that attribute is provided for required methods and warn if attribute
+        is provided for methods where it doesn't apply.
+
+        Raises
+        ------
+        ValueError
+            A ValueError will be raised if attribute is missing for a required method.
+        """
+        method_info = VALID_CHARACTERIZATION_METHODS.get(self.method)
+        if method_info is None or method_info.get("attribute_required") is None:
+            raise ValueError(
+                "Missing information required to determine if attribute is required "
+                f"for the specified method {self.method}"
+            )
+        attribute_required = method_info.get("attribute_required")
+        if attribute_required and self.attribute is None:
+            raise ValueError(
+                f"attribute was not provided, but is required for method {self.method}"
+            )
+        if not attribute_required and self.attribute:
+            warnings.warn(
+                f"attribute specified but will not be applied for {self.method}"
+            )
+        if attribute_required and self.attribute:
+            if self.dset_ext == ".parquet":
+                dset_attributes = get_attributes_parquet(self.dset_src)
+            else:
+                dset_attributes = get_attributes_pyogrio(self.dset_src)
+            attr_dtype = dset_attributes.get(self.attribute)
+            if not attr_dtype:
+                raise ValueError(
+                    f"Attribute {self.attribute} not found in {self.dset_src}"
+                )
+            if not is_numeric_dtype(attr_dtype):
+                raise TypeError(
+                    f"Attribute {self.attribute} in {self.dset_src} is invalid "
+                    f"type {attr_dtype}. Must be a numeric dtype."
+                )
 
         return self
 
