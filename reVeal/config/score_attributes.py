@@ -35,6 +35,7 @@ class Attribute(BaseModelStrict):
     attribute: str
     score_method: AttributeScoringMethodEnum
     dset_src: FilePath
+    invert: bool = False
     # Derived dynamically
     dset_ext: Optional[str] = None
     dset_flavor: Optional[str] = None
@@ -109,8 +110,9 @@ class BaseScoreAttributesConfig(BaseModelStrict):
 
     # Input at instantiation
     grid: FilePath
-    attributes: Optional[dict] = {}
+    attributes: dict = {}
     score_method: Optional[AttributeScoringMethodEnum] = None
+    invert: bool = False
 
 
 class ScoreAttributesConfig(BaseScoreAttributesConfig):
@@ -246,6 +248,7 @@ class ScoreAttributesConfig(BaseScoreAttributesConfig):
                         attribute=attr,
                         score_method=self.score_method,
                         dset_src=self.grid,
+                        invert=self.invert,
                     )
             # preserve any existing attributes that were explicitly defined
             attributes.update(self.attributes)

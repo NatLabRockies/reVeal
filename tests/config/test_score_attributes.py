@@ -39,15 +39,25 @@ def test_attributescoringmethodenum(value, error_expected):
 
 
 @pytest.mark.parametrize(
-    "dset,attribute,score_method",
+    "dset,attribute,score_method,invert",
     [
-        ("characterize/outputs/grid_char.gpkg", "tline_length", "minmax"),
-        ("characterize/outputs/grid_char.gpkg", "fttp_average_speed", "percentile"),
-        ("characterize/outputs/grid_char.parquet", "generator_mwh", "minmax"),
-        ("characterize/outputs/grid_char.parquet", "developable_area", "percentile"),
+        ("characterize/outputs/grid_char.gpkg", "tline_length", "minmax", None),
+        (
+            "characterize/outputs/grid_char.gpkg",
+            "fttp_average_speed",
+            "percentile",
+            True,
+        ),
+        ("characterize/outputs/grid_char.parquet", "generator_mwh", "minmax", False),
+        (
+            "characterize/outputs/grid_char.parquet",
+            "developable_area",
+            "percentile",
+            True,
+        ),
     ],
 )
-def test_attribute_valid_inputs(data_dir, attribute, score_method, dset):
+def test_attribute_valid_inputs(data_dir, attribute, score_method, invert, dset):
     """
     Test Attribute class with valid inputs and make sure dynamic attributes are set.
     """
@@ -56,12 +66,19 @@ def test_attribute_valid_inputs(data_dir, attribute, score_method, dset):
         "attribute": attribute,
         "score_method": score_method,
         "dset_src": dset_src,
+        "invert": invert,
     }
-    attribute = Attribute(**value)
+    if invert is None:
+        value.pop("invert")
+    attribute_model = Attribute(**value)
 
     # check dynamic attributes are set
-    assert attribute.dset_ext is not None, "dset_ext not set"
-    assert attribute.dset_flavor is not None, "dset_flavor not set"
+    assert attribute_model.dset_ext is not None, "dset_ext not set"
+    assert attribute_model.dset_flavor is not None, "dset_flavor not set"
+    if not invert:
+        assert attribute_model.invert is False, "Unexpected value for invert"
+    else:
+        assert attribute_model.invert is True, "Unexpected value for invert"
 
 
 @pytest.mark.parametrize(
@@ -139,6 +156,7 @@ def test_scoreattributesconfig_valid_inputs(data_dir):
         "fttp_average_speed_score": {
             "attribute": "fttp_average_speed",
             "score_method": "percentile",
+            "invert": True,
         },
     }
     config_data = {
@@ -222,7 +240,8 @@ def test_scoreattributesconfig_no_attributes_or_scoremethod(data_dir):
         ScoreAttributesConfig(**config)
 
 
-def test_scoreattributesconfig_scoremethod_only(data_dir):
+@pytest.mark.parametrize("invert", [None, False, True])
+def test_scoreattributesconfig_scoremethod_only(data_dir, invert):
     """
     Test that ScoreAttributesConfig correctly propagates attributes when top-level
     score_method is specified but attributes are not.
@@ -231,6 +250,11 @@ def test_scoreattributesconfig_scoremethod_only(data_dir):
     grid = data_dir / "characterize/outputs/grid_char.gpkg"
     score_method = "minmax"
     config_data = {"grid": grid, "score_method": score_method}
+    if invert is None:
+        expected_invert = False
+    else:
+        config_data["invert"] = invert
+        expected_invert = invert
 
     config = ScoreAttributesConfig(**config_data)
 
@@ -244,9 +268,13 @@ def test_scoreattributesconfig_scoremethod_only(data_dir):
         assert (
             attribute.score_method == score_method
         ), "Unexpected score_method in propagated attribute"
+        assert (
+            attribute.invert == expected_invert
+        ), "Unexpected invert in propagated attribute"
 
 
-def test_scoreattributesconfig_scoremethod_backfill(data_dir):
+@pytest.mark.parametrize("invert", [None, False, True])
+def test_scoreattributesconfig_scoremethod_backfill(data_dir, invert):
     """
     Test that ScoreAttributesConfig correctly backfills missing attributes when
     top-level score_method is specified but leaves specified attributes unchanged.
@@ -260,9 +288,15 @@ def test_scoreattributesconfig_scoremethod_backfill(data_dir):
             "generator_mwh_score": {
                 "attribute": "generator_mwh",
                 "score_method": "percentile",
+                "invert": True,
             }
         },
     }
+    if invert is None:
+        expected_invert = False
+    else:
+        config_data["invert"] = invert
+        expected_invert = invert
 
     config = ScoreAttributesConfig(**config_data)
 
@@ -275,11 +309,16 @@ def test_scoreattributesconfig_scoremethod_backfill(data_dir):
     for out_col, attribute in config.attributes.items():
         if out_col == "generator_mwh_score":
             expected_score_method = "percentile"
+            expected_attr_invert = True
         else:
             expected_score_method = score_method
+            expected_attr_invert = expected_invert
         assert (
             attribute.score_method == expected_score_method
         ), "Unexpected score_method in propagated attribute"
+        assert (
+            attribute.invert == expected_attr_invert
+        ), "Unexpected invert in propgated attribute"
 
 
 def test_scoreattributesconfig_scoremethod_propagate_warning(data_dir, tmp_path):
