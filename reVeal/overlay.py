@@ -6,6 +6,10 @@ Note that to expose methods here for by reVeal.grid.get_overlay_method() functio
 and functions dependent on it, the function must be prefixed with "calc_".
 """
 # pylint: disable=unused-argument
+from multiprocessing import cpu_count
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import logging
+
 import geopandas as gpd
 import pandas as pd
 from exactextract.exact_extract import exact_extract
@@ -13,8 +17,20 @@ from osgeo.gdal import UseExceptions
 import rasterio
 
 from reVeal.fileio import read_vectors
+from reVeal.dataframe import dataframe_split
 
 UseExceptions()
+
+LOGGER = logging.getLogger(__name__)
+
+
+def exact_extract_wrap(*args, **kwargs):
+    """
+    Helper function for calling exact_extract in a subprocess without receiving
+    FutureWarning messages from gdal. This works because UseExceptions() is imported
+    already in the main process.
+    """
+    return exact_extract(*args, **kwargs)
 
 
 def calc_feature_count(zones_df, dset_src, **kwargs):
@@ -442,9 +458,9 @@ def calc_area_apportioned_sum(zones_df, dset_src, attribute, **kwargs):
     return complete_sums_df
 
 
-def zonal_statistic(zones_df, dset_src, stat, weights_dset_src=None, **kwargs):
+def zonal_statistic_serial(zones_df, dset_src, stat, weights_dset_src=None):
     """
-    Calculate zonal statistic for the specified statistic.
+    Calculate zonal statistic for the specified statistic using serial processing.
 
     Parameters
     ----------
@@ -488,7 +504,115 @@ def zonal_statistic(zones_df, dset_src, stat, weights_dset_src=None, **kwargs):
     return stats_df
 
 
-def calc_median(zones_df, dset_src, **kwargs):
+def zonal_statistic_parallel(zones_df, dset_src, stat, weights_dset_src=None):
+    """
+    Calculate zonal statistic for the specified statistic using parallel processing.
+
+    Parameters
+    ----------
+    zones_df : geopandas.GeoDataFrame
+        Input zones dataframe, to which results will be aggregated. This
+        function assumes that the index of zones_df is unique for each feature. If
+        this is not the case, unexpected results may occur.
+    dset_src : str
+        Path to input raster dataset to be summarized.
+    stat : str
+        Zonal statistic to calculate. For valid options and compatability with
+        use of weights, see:
+        https://isciences.github.io/exactextract/operations.html#built-in-operations.
+    weights_dset_src : str, optional
+        Optional path to datset to use for weights. Note that only some options for
+        stat support use of weights. See stat for more information.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Returns a pandas DataFrame with a "value" column, representing the
+        aggregate statistic of raster values within each zone. The index from the
+        input zones_df is also included.
+    """
+
+    zone_idx = zones_df.index.name
+    if weights_dset_src is not None:
+        stat = f"weighted_{stat}"
+
+    n_splits = cpu_count() * 10
+    results = []
+    futures = {}
+    with ProcessPoolExecutor() as pool:
+        for i, split_df in enumerate(dataframe_split(zones_df.reset_index(), n_splits)):
+            future = pool.submit(
+                exact_extract_wrap,
+                rast=dset_src,
+                vec=split_df,
+                ops=[stat],
+                weights=weights_dset_src,
+                include_cols=[zone_idx],
+                output="pandas",
+            )
+            futures[future] = i
+        for future in as_completed(futures):
+            i = futures[future]
+            try:
+                result_df = future.result()
+                results.append(result_df)
+            except Exception as e:
+                LOGGER.error(f"Error processing chunk {i}")
+                raise e
+
+    stats_df = pd.concat(results, ignore_index=True)
+    # cast results to float to make sure actual NaN is used (i.e., instead of None)
+    stats_df[stat] = stats_df[stat].astype(float)
+
+    stats_df.set_index(zone_idx, inplace=True)
+    stats_df.rename(columns={stat: "value"}, inplace=True)
+
+    return stats_df
+
+
+def zonal_statistic(zones_df, dset_src, stat, weights_dset_src=None, parallel=False):
+    """
+    Calculate zonal statistic for the specified statistic. Convenience function that
+    wraps zonal_statistic_serial() and zonal_statistic_parallel() functions,
+
+    Parameters
+    ----------
+    zones_df : geopandas.GeoDataFrame
+        Input zones dataframe, to which results will be aggregated. This
+        function assumes that the index of zones_df is unique for each feature. If
+        this is not the case, unexpected results may occur.
+    dset_src : str
+        Path to input raster dataset to be summarized.
+    stat : str
+        Zonal statistic to calculate. For valid options and compatability with
+        use of weights, see:
+        https://isciences.github.io/exactextract/operations.html#built-in-operations.
+    weights_dset_src : str, optional
+        Optional path to datset to use for weights. Note that only some options for
+        stat support use of weights. See stat for more information.
+    parallel : bool, optional
+        If True, run the zonal statistic operation with parallel processing. If False
+        (default), run with serial processing.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Returns a pandas DataFrame with a "value" column, representing the
+        aggregate statistic of raster values within each zone. The index from the
+        input zones_df is also included.
+    """
+
+    if parallel:
+        return zonal_statistic_parallel(
+            zones_df, dset_src, stat, weights_dset_src=weights_dset_src
+        )
+
+    return zonal_statistic_serial(
+        zones_df, dset_src, stat, weights_dset_src=weights_dset_src
+    )
+
+
+def calc_median(zones_df, dset_src, parallel=False, **kwargs):
     """
     Calculate zonal median of raster values over the input zones.
 
@@ -500,6 +624,9 @@ def calc_median(zones_df, dset_src, **kwargs):
         this is not the case, unexpected results may occur.
     dset_src : str
         Path to input raster dataset to be summarized.
+    parallel : bool, optional
+        If True, run the zonal statistic operation with parallel processing. If False
+        (default), run with serial processing.
 
     Returns
     -------
@@ -509,10 +636,10 @@ def calc_median(zones_df, dset_src, **kwargs):
         included.
     """
 
-    return zonal_statistic(zones_df, dset_src, stat="median")
+    return zonal_statistic(zones_df, dset_src, stat="median", parallel=parallel)
 
 
-def calc_mean(zones_df, dset_src, weights_dset_src, **kwargs):
+def calc_mean(zones_df, dset_src, weights_dset_src, parallel=False, **kwargs):
     """
     Calculate zonal mean or weighted mean of raster values over the input zones.
 
@@ -527,6 +654,9 @@ def calc_mean(zones_df, dset_src, weights_dset_src, **kwargs):
     weights_dset_src : str, optional
         Optional path to datset to use for weights. If specified, the mean for each
         zone will be weighted based on the values in this dataset.
+    parallel : bool, optional
+        If True, run the zonal statistic operation with parallel processing. If False
+        (default), run with serial processing.
 
     Returns
     -------
@@ -537,11 +667,15 @@ def calc_mean(zones_df, dset_src, weights_dset_src, **kwargs):
     """
 
     return zonal_statistic(
-        zones_df, dset_src, stat="mean", weights_dset_src=weights_dset_src
+        zones_df,
+        dset_src,
+        stat="mean",
+        weights_dset_src=weights_dset_src,
+        parallel=parallel,
     )
 
 
-def calc_sum(zones_df, dset_src, weights_dset_src, **kwargs):
+def calc_sum(zones_df, dset_src, weights_dset_src, parallel=False, **kwargs):
     """
     Calculate zonal sum or weighted sum of raster values over the input zones.
 
@@ -556,6 +690,9 @@ def calc_sum(zones_df, dset_src, weights_dset_src, **kwargs):
     weights_dset_src : str, optional
         Optional path to datset to use for weights. If specified, the sum for each
         zone will be weighted based on the values in this dataset.
+    parallel : bool, optional
+        If True, run the zonal statistic operation with parallel processing. If False
+        (default), run with serial processing.
 
     Returns
     -------
@@ -566,11 +703,15 @@ def calc_sum(zones_df, dset_src, weights_dset_src, **kwargs):
     """
 
     return zonal_statistic(
-        zones_df, dset_src, stat="sum", weights_dset_src=weights_dset_src
+        zones_df,
+        dset_src,
+        stat="sum",
+        weights_dset_src=weights_dset_src,
+        parallel=parallel,
     )
 
 
-def calc_area(zones_df, dset_src, **kwargs):
+def calc_area(zones_df, dset_src, parallel=False, **kwargs):
     """
     Calculate the area of a raster within each zone. This function works by summing
     the raster values in each zone and then multiplying by the pixel size. See
@@ -588,6 +729,9 @@ def calc_area(zones_df, dset_src, **kwargs):
         pixel to count when summing the total area inthe zone. If the input raster's
         values do no range from 0 (no inclusion) to 1 (full inclusion), the output
         results may be nonsensical.
+    parallel : bool, optional
+        If True, run the zonal statistic operation with parallel processing. If False
+        (default), run with serial processing.
 
     Returns
     -------
@@ -596,7 +740,7 @@ def calc_area(zones_df, dset_src, **kwargs):
         of raster within each zone. The index from the input zones_df is also included.
     """
 
-    sums_df = zonal_statistic(zones_df, dset_src, stat="sum")
+    sums_df = zonal_statistic(zones_df, dset_src, stat="sum", parallel=parallel)
     with rasterio.open(dset_src, "r") as src:
         height, width = src.res
 

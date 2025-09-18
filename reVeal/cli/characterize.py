@@ -124,6 +124,17 @@ def run(
                 input grid dataset. For instance, a value of 500 in CRS EPGS:5070
                 would apply a buffer of 500m to each grid cell before characterization.
                 Optional, default is 0 which does not apply a buffer.
+            - "parallel": Boolean indicating whether to run the characterization in
+                parallel. This method is only applicable to methods specified as
+                "supports_parallel" in
+                :obj:`reVeal.config.VALID_CHARACTERIZATION_METHODS`. Default is True,
+                which will run applicable method in parallel and have no effect for
+                other methods. This value should only be changed to False for small
+                input grids, where the performance overhead of setting up parallel
+                processing will outweigh the speedup of running operations in parallel.
+                As a general rule of thumb, as long as the number of grid cells in your
+                grid is an order of magnitude larger than the number of cores
+                available, using ```parallel=True``` should yield improved performance.
     expressions: dict
         Additional expressions to be calculated. Must be a dictionary keyes by the name
         of the output attribute for each expression. Each value must be a string

@@ -32,6 +32,8 @@ def test_characterize(
     config_data["grid"] = (
         data_dir / "characterize" / "grids" / "grid_2.gpkg"
     ).as_posix()
+    for attr in config_data["characterizations"]:
+        config_data["characterizations"][attr].update({"parallel": True})
 
     config_path = tmp_path / "config.json"
     with open(config_path, "w") as f:
