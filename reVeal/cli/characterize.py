@@ -109,7 +109,8 @@ def run(
             - "dset": String indicating relative path within data_dir to dataset to be
                 characterized.
             - "method": String indicating characterization method to be performed.
-                Refer to :obj:`reVeal.config.VALID_CHARACTERIZATION_METHODS`.
+                Refer to
+                :obj:`reVeal.config.characterize.VALID_CHARACTERIZATION_METHODS`.
             - "attribute": Attribute to summarize. Only required for certain methods.
                 Default is None/null.
             - "weights_dset": String indicating relative path within data_dir to
