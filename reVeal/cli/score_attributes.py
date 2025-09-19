@@ -153,6 +153,7 @@ def run(
         grid=grid,
         attributes=attributes,
         score_method=score_method,
+        invert=invert,
     )
 
     LOGGER.info("Initializing ScoreAttributesGrid from input config.")
