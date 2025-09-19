@@ -11,6 +11,7 @@ from reVeal.config.score_attributes import (
     AttributeScoringMethodEnum,
     Attribute,
     ScoreAttributesConfig,
+    GRID_IDX,
 )
 
 
@@ -259,7 +260,9 @@ def test_scoreattributesconfig_scoremethod_only(data_dir, invert):
     config = ScoreAttributesConfig(**config_data)
 
     grid_df = gpd.read_file(grid)
-    expected_attributes = {f"{c}_score" for c in grid_df.columns if c != "geometry"}
+    expected_attributes = {
+        f"{c}_score" for c in grid_df.columns if c not in ("geometry", GRID_IDX)
+    }
     actual_attributes = set(config.attributes.keys())
     attribute_diffs = actual_attributes.symmetric_difference(expected_attributes)
     assert len(attribute_diffs) == 0, "Propagated attributes do not match expected set"
@@ -301,7 +304,9 @@ def test_scoreattributesconfig_scoremethod_backfill(data_dir, invert):
     config = ScoreAttributesConfig(**config_data)
 
     grid_df = gpd.read_file(grid)
-    expected_attributes = {f"{c}_score" for c in grid_df.columns if c != "geometry"}
+    expected_attributes = {
+        f"{c}_score" for c in grid_df.columns if c not in ("geometry", GRID_IDX)
+    }
     actual_attributes = set(config.attributes.keys())
     attribute_diffs = actual_attributes.symmetric_difference(expected_attributes)
     assert len(attribute_diffs) == 0, "Propagated attributes do not match expected set"

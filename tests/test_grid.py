@@ -3,6 +3,7 @@
 grid module tests
 """
 import json
+import warnings
 
 import pytest
 import geopandas as gpd
@@ -14,8 +15,10 @@ from reVeal.grid import (
     CharacterizeGrid,
     create_grid,
     get_neighbors,
-    get_overlay_method,
+    get_method_from_members,
     run_characterization,
+    OVERLAY_METHODS,
+    ATTRIBUTE_SCORE_METHODS,
 )
 from reVeal.config.config import BaseGridConfig
 from reVeal.config.characterize import CharacterizeConfig
@@ -203,27 +206,31 @@ def test_run_characterizegrid(char_grid):
 
 
 @pytest.mark.parametrize(
-    "method_name,error_expected",
+    "method_name,members,error_expected",
     [
-        ("feature_count", False),
-        ("feature count", False),
-        ("featurecount", True),
-        ("Feature-Count", False),
-        ("sum attribute", False),
-        ("sum length", False),
-        ("sum attribute-length", False),
-        ("sum area", False),
-        ("percent covered", False),
-        ("area-weighted average", False),
-        ("area-apportioned sum", False),
-        ("mean", False),
-        ("median", False),
-        ("sum", False),
-        ("area", False),
-        ("not a method", True),
+        ("feature_count", OVERLAY_METHODS, False),
+        ("feature count", OVERLAY_METHODS, False),
+        ("featurecount", OVERLAY_METHODS, True),
+        ("Feature-Count", OVERLAY_METHODS, False),
+        ("sum attribute", OVERLAY_METHODS, False),
+        ("sum length", OVERLAY_METHODS, False),
+        ("sum attribute-length", OVERLAY_METHODS, False),
+        ("sum area", OVERLAY_METHODS, False),
+        ("percent covered", OVERLAY_METHODS, False),
+        ("area-weighted average", OVERLAY_METHODS, False),
+        ("area-apportioned sum", OVERLAY_METHODS, False),
+        ("mean", OVERLAY_METHODS, False),
+        ("median", OVERLAY_METHODS, False),
+        ("sum", OVERLAY_METHODS, False),
+        ("area", OVERLAY_METHODS, False),
+        ("not a method", OVERLAY_METHODS, True),
+        ("minmax", ATTRIBUTE_SCORE_METHODS, False),
+        ("min-max", ATTRIBUTE_SCORE_METHODS, True),
+        ("percentile", ATTRIBUTE_SCORE_METHODS, False),
+        ("percentiles", ATTRIBUTE_SCORE_METHODS, True),
     ],
 )
-def test_get_overlay_method(method_name, error_expected):
+def test_get_method_from_members(method_name, members, error_expected):
     """
     Test get_overlay_method() returns a valid callable function, when expected,
     and if not raises a NotImplementedError.
@@ -232,9 +239,9 @@ def test_get_overlay_method(method_name, error_expected):
         with pytest.raises(
             NotImplementedError, match="Unrecognized or unsupported method.*"
         ):
-            get_overlay_method(method_name)
+            get_method_from_members(method_name, members)
     else:
-        f = get_overlay_method(method_name)
+        f = get_method_from_members(method_name, members)
         assert callable(f), "Returned method is not callable"
 
 
@@ -281,6 +288,15 @@ def test_run_characterization_with_expression_injection(
         assert (
             str(recwarn[0].message) != "AH AH AH!"
         ), "Warning message injected via dataframe.eval()"
+
+
+def test_run_scoreattributesgrid(score_attr_grid):
+    """
+    Test the run() function of ScoreAttributesGrid.
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        score_attr_grid.run()
 
 
 if __name__ == "__main__":

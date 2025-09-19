@@ -15,11 +15,14 @@ from shapely.geometry import box
 
 from reVeal.config.config import load_config, BaseGridConfig
 from reVeal.config.characterize import CharacterizeConfig
-from reVeal.config.score_attributes import ScoreAttributesConfig
-from reVeal import overlay
+from reVeal.config.score_attributes import ScoreAttributesConfig, GRID_IDX
+from reVeal import overlay, score
 
 OVERLAY_METHODS = {
     k[5:]: v for k, v in getmembers(overlay, isfunction) if k.startswith("calc_")
+}
+ATTRIBUTE_SCORE_METHODS = {
+    k[5:]: v for k, v in getmembers(score, isfunction) if k.startswith("calc_")
 }
 
 LOGGER = logging.getLogger(__name__)
@@ -122,31 +125,36 @@ def get_neighbors(grid_df, order):
     return grid
 
 
-def get_overlay_method(method_name):
+def get_method_from_members(method_name, members):
     """
-    Get and return the function corresponding to the input overlay method name.
+    Helper function to look up a callable from a group of options.
 
     Parameters
     ----------
     method_name : str
-        Name of overlay method to retrieve.
+        Name of method to retrieve. Should use spaces where the desired callable uses
+        underscores.
+    member : dict
+        Dictionary where keys indicate method names and values are the corresponding
+        callable function. Names used as keys should use underscores where the
+        method_name uses spaces.
 
     Returns
     -------
     Callable
-        Overlay method as a function.
+        Method as a function.
 
     Raises
     ------
     NotImplementedError
         A NotImplementedError will be raised if a function cannot be found
-        corresponding to the specified method_name.
+        corresponding to the input method_name.
     """
     pattern = r"[\W\s]+"
     # Replace all matches of the pattern with a single underscore
     sanitized_method = re.sub(pattern, "_", method_name).strip("_").lower()
 
-    method = OVERLAY_METHODS.get(sanitized_method)
+    method = members.get(sanitized_method)
     if not method:
         raise NotImplementedError(f"Unrecognized or unsupported method: {method_name}")
 
@@ -165,7 +173,7 @@ def run_characterization(df, characterization):
         geometries share only points or segments of the exterior boundaries. This
         function also assumes that the index of df is unique for each feature. If
         either of these are not the case, unexpected results may occur.
-    characterization : :class:`reVeal.config.Characterization`
+    characterization : :class:`reVeal.config.characterize.Characterization`
         Input information describing characterization to be run, in the form of
         a Characterization instance.
 
@@ -182,10 +190,40 @@ def run_characterization(df, characterization):
             characterization.buffer_distance
         )
 
-    method = get_overlay_method(characterization.method)
+    method = get_method_from_members(characterization.method, OVERLAY_METHODS)
     result_df = method(grid_df, **characterization.model_dump())
 
     return result_df
+
+
+def run_attribute_scoring(df, attribute, score_method, invert):
+    """
+    Execute a single characterization on an input grid.
+
+    Parameters
+    ----------
+    df : geopandas.GeoDataFrame
+        Input grid geodataframe
+    attribute : str
+        Name of column in input GeoDataFrame to score
+    score_method : str
+        Method to use for scoring attribute.
+    invert : bool,optional
+        If True, score with values inverted (i.e., low values will be closer to 1, and
+        higher values closer to 0). Default is False, under which values are scored
+        with low values closer to 0 and high values closer to 1.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Returns a pandas DataFrame with a "value" column, representing the output
+        scored values for the specified attribute. The index from the input df
+        is also included.
+    """
+    method = get_method_from_members(score_method, ATTRIBUTE_SCORE_METHODS)
+    scored = method(df, attribute, invert)
+
+    return scored
 
 
 class BaseGrid:
@@ -239,19 +277,19 @@ class BaseGrid:
                 self.df = grid
 
         self.crs = self.df.crs
-        self._add_gid()
+        self._add_index()
 
-    def _add_gid(self):
+    def _add_index(self):
         """
         Adds gid column to self.df and sets as index.
         """
-        if "gid" in self.df.columns:
+        if GRID_IDX in self.df.columns:
             warnings.warn(
-                "gid column already exists in self.dataframe. Values will be "
+                f"{GRID_IDX} column already exists in self.dataframe. Values will be "
                 "overwritten."
             )
-        self.df["gid"] = range(0, len(self.df))
-        self.df.set_index("gid", inplace=True)
+        self.df[GRID_IDX] = range(0, len(self.df))
+        self.df.set_index(GRID_IDX, inplace=True)
 
 
 class RunnableGrid(BaseGrid):
@@ -348,4 +386,38 @@ class ScoreAttributesGrid(RunnableGrid):
     CONFIG_CLASS = ScoreAttributesConfig
 
     def run(self):
-        return self.df
+        """
+        Run attribute scoring based on the input configuration.
+
+        Returns
+        -------
+        gpd.GeoDataFrame
+            A GeoDataFrame with scored attributes.
+        """
+        results = []
+        for attr_name, attr_info in self.config.attributes.items():
+            LOGGER.info(f"Running scoring for output column '{attr_name}'")
+            try:
+                score_df = run_attribute_scoring(
+                    self.df,
+                    attr_info.attribute,
+                    attr_info.score_method,
+                    attr_info.invert,
+                )
+                score_df.rename(columns={"value": attr_name}, inplace=True)
+                results.append(score_df)
+            except NotImplementedError:
+                warnings.warn(f"Method {attr_info.score_method} not supported")
+
+        results_df = pd.concat([self.df] + results, axis=1)
+
+        LOGGER.info("Checking for NA values in results dataframe.")
+        na_check = results_df[self.config.attributes.keys()].isna().any()
+        if na_check.any():
+            cols_with_nas = na_check.keys()[na_check.values].tolist()
+            warnings.warn(
+                "NAs encountered in results dataframe in the following columns: "
+                f"{cols_with_nas}"
+            )
+
+        return results_df

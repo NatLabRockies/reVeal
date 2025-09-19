@@ -17,6 +17,9 @@ from reVeal.config.config import BaseEnum, BaseModelStrict, BaseGridConfig
 from reVeal.fileio import get_attributes_parquet, get_attributes_pyogrio
 
 
+GRID_IDX = "gid"
+
+
 class AttributeScoringMethodEnum(BaseEnum):
     """
     Enumeration for allowable scoring methods. Case insensitive.
@@ -236,7 +239,7 @@ class ScoreAttributesConfig(BaseScoreAttributesConfig):
 
             attributes = {}
             for attr, attr_dtype in dset_attributes.items():
-                if is_numeric_dtype(attr_dtype):
+                if attr != GRID_IDX and is_numeric_dtype(attr_dtype):
                     out_col = f"{attr}_score"
                     if out_col in dset_attributes:
                         warnings.warn(
