@@ -13,7 +13,7 @@ from pydantic import (
 )
 from pandas.api.types import is_numeric_dtype
 
-from reVeal.config.config import BaseEnum, BaseModelStrict
+from reVeal.config.config import BaseEnum, BaseModelStrict, BaseGridConfig
 from reVeal.fileio import get_attributes_parquet, get_attributes_pyogrio
 
 
@@ -101,7 +101,7 @@ class Attribute(BaseModelStrict):
         return self
 
 
-class BaseScoreAttributesConfig(BaseModelStrict):
+class BaseScoreAttributesConfig(BaseGridConfig):
     """
     Base model for ScoreAttributesConfig with only required inputs and datatypes.
     """
@@ -109,7 +109,6 @@ class BaseScoreAttributesConfig(BaseModelStrict):
     # pylint: disable=too-few-public-methods
 
     # Input at instantiation
-    grid: FilePath
     attributes: dict = {}
     score_method: Optional[AttributeScoringMethodEnum] = None
     invert: bool = False

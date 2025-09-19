@@ -28,7 +28,7 @@ from reVeal.fileio import (
     get_attributes_parquet,
     get_attributes_pyogrio,
 )
-from reVeal.config.config import BaseEnum, BaseModelStrict
+from reVeal.config.config import BaseEnum, BaseModelStrict, BaseGridConfig
 
 
 VALID_CHARACTERIZATION_METHODS = {
@@ -366,7 +366,7 @@ class Characterization(BaseModelStrict):
         return self
 
 
-class BaseCharacterizeConfig(BaseModelStrict):
+class BaseCharacterizeConfig(BaseGridConfig):
     """
     Base model for CharacterizeConfig with only required inputs and datatypes.
     """
@@ -375,7 +375,6 @@ class BaseCharacterizeConfig(BaseModelStrict):
 
     # Input at instantiation
     data_dir: DirectoryPath
-    grid: FilePath
     characterizations: dict
     expressions: Optional[dict] = None
 

@@ -3,7 +3,7 @@
 config.config module
 """
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, FilePath
 
 
 class BaseModelStrict(BaseModel):
@@ -35,6 +35,14 @@ class BaseEnum(str, Enum):
                 if member.value == value:
                     return member
         raise ValueError(f"{value} is not a valid option of {cls}")
+
+
+class BaseGridConfig(BaseModelStrict):
+    """
+    Base Configuration object for gridded commands.
+    """
+
+    grid: FilePath
 
 
 def load_config(config, config_class):
