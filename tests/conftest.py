@@ -8,7 +8,7 @@ import pytest
 from click.testing import CliRunner
 
 from reVeal import PACKAGE_DIR
-from reVeal.grid import Grid, CharacterizeGrid
+from reVeal.grid import BaseGrid, CharacterizeGrid
 
 TEST_DATA_DIR = PACKAGE_DIR.parent.joinpath("tests", "data")
 
@@ -29,7 +29,7 @@ def cli_runner():
 def base_grid():
     """Return a Grid instance"""
     template_src = TEST_DATA_DIR / "characterize" / "grids" / "grid_2.gpkg"
-    grid = Grid(template=template_src)
+    grid = BaseGrid(template=template_src)
 
     return grid
 

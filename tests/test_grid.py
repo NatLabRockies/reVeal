@@ -9,13 +9,15 @@ import geopandas as gpd
 from geopandas.testing import assert_geodataframe_equal
 
 from reVeal.grid import (
-    Grid,
+    BaseGrid,
+    RunnableGrid,
     CharacterizeGrid,
     create_grid,
     get_neighbors,
     get_overlay_method,
     run_characterization,
 )
+from reVeal.config.config import BaseGridConfig
 from reVeal.config.characterize import CharacterizeConfig
 
 
@@ -70,7 +72,7 @@ def test_create_grid(data_dir, bounds, res, crs, i):
         ),  # all three together
     ],
 )
-def test_init_grid_from_template(data_dir, crs, bounds, res):
+def test_init_basegrid_from_template(data_dir, crs, bounds, res):
     """
     Test for initializing Grid instance from a template file.
     """
@@ -79,9 +81,9 @@ def test_init_grid_from_template(data_dir, crs, bounds, res):
 
     if res is not None:
         with pytest.warns(UserWarning):
-            grid = Grid(template=template_src, crs=crs, bounds=bounds, res=res)
+            grid = BaseGrid(template=template_src, crs=crs, bounds=bounds, res=res)
     else:
-        grid = Grid(template=template_src, crs=crs, bounds=bounds, res=res)
+        grid = BaseGrid(template=template_src, crs=crs, bounds=bounds, res=res)
 
     template_df = gpd.read_file(template_src)
 
@@ -118,7 +120,7 @@ def test_init_grid_from_template(data_dir, crs, bounds, res):
         ("EPSG:5070", [0, 1, 2, 3], None, None),  # unspecified res (should error)
     ],
 )
-def test_init_grid_from_scratch(data_dir, crs, bounds, res, i):
+def test_init_basegrid_from_scratch(data_dir, crs, bounds, res, i):
     """
     Test for initializing Grid instance from crs, bounds, and res parameters.
     """
@@ -126,12 +128,12 @@ def test_init_grid_from_scratch(data_dir, crs, bounds, res, i):
     if crs is None or bounds is None or res is None:
         # if any are None, a ValueError should be raised
         with pytest.raises(ValueError, match="If template is not provided*."):
-            Grid(crs=crs, bounds=bounds, res=res)
+            BaseGrid(crs=crs, bounds=bounds, res=res)
     else:
         expected_src = data_dir / "characterize" / "grids" / f"grid_{i}.gpkg"
         expected_df = gpd.read_file(expected_src)
 
-        grid = Grid(crs=crs, bounds=bounds, res=res)
+        grid = BaseGrid(crs=crs, bounds=bounds, res=res)
 
         assert len(grid.df) == len(expected_df), "Unexpected number of features in grid"
         assert grid.crs == crs, "Unexpected grid crs"
@@ -150,6 +152,20 @@ def test_get_neighbors(base_grid, order, data_dir):
     expected_neighbors_df.set_index("gid", inplace=True)
 
     assert_geodataframe_equal(neighbors_df, expected_neighbors_df)
+
+
+def test_init_runnablegrid(data_dir):
+    """
+    Test intializable of a RunnableGrid from a config. Ensure that the run() method
+    raises a NotImplementedError.
+    """
+
+    grid_src = data_dir / "characterize" / "grids" / "grid_1.gpkg"
+    config = BaseGridConfig(grid=grid_src)
+    grid = RunnableGrid(config=config)
+    assert grid.config == config, "Unexpected value for grid.config"
+    with pytest.raises(NotImplementedError, match="run method not implemented"):
+        grid.run()
 
 
 @pytest.mark.parametrize("as_dict", [False, True])

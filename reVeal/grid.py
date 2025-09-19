@@ -13,8 +13,9 @@ from libpysal import graph
 import numpy as np
 from shapely.geometry import box
 
-from reVeal.config.config import load_config
+from reVeal.config.config import load_config, BaseGridConfig
 from reVeal.config.characterize import CharacterizeConfig
+from reVeal.config.score_attributes import ScoreAttributesConfig
 from reVeal import overlay
 
 OVERLAY_METHODS = {
@@ -187,7 +188,7 @@ def run_characterization(df, characterization):
     return result_df
 
 
-class Grid:
+class BaseGrid:
     """
     Grid base class
     """
@@ -253,10 +254,12 @@ class Grid:
         self.df.set_index("gid", inplace=True)
 
 
-class CharacterizeGrid(Grid):
+class RunnableGrid(BaseGrid):
     """
-    Subclass of Grid for running characterizations.
+    Subclass of BaseGrid for running operations.
     """
+
+    CONFIG_CLASS = BaseGridConfig
 
     def __init__(self, config):
         """
@@ -269,9 +272,30 @@ class CharacterizeGrid(Grid):
             instance. If a dictionary, validation will be performed to ensure
             inputs are valid.
         """
-        config = load_config(config, CharacterizeConfig)
+        config = load_config(config, config_class=self.CONFIG_CLASS)
         super().__init__(template=config.grid)
         self.config = config
+
+    def run(self):
+        """
+        Run method.
+
+        Raises
+        ------
+        NotImplementedError
+            A NotImplementedError is always raised.
+        """
+        raise NotImplementedError(
+            "run method not implemented for RunnableGrid base class"
+        )
+
+
+class CharacterizeGrid(RunnableGrid):
+    """
+    Subclass of RunnableGrid for running characterizations.
+    """
+
+    CONFIG_CLASS = CharacterizeConfig
 
     def run(self):
         """
@@ -313,3 +337,14 @@ class CharacterizeGrid(Grid):
             )
 
         return results_df
+
+
+class ScoreAttributesGrid(RunnableGrid):
+    """
+    Subclass of RunnableGrid for scoring attributes.
+    """
+
+    CONFIG_CLASS = ScoreAttributesConfig
+
+    def run(self):
+        return self.df
