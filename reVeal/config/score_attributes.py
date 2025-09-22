@@ -78,7 +78,7 @@ class BaseScoreAttributesConfig(BaseGridConfig):
 
 class ScoreAttributesConfig(BaseScoreAttributesConfig):
     """
-    Configuration for characterize command.
+    Configuration for score-attributes command.
     """
 
     # pylint: disable=too-few-public-methods

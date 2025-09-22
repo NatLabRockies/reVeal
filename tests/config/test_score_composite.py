@@ -7,7 +7,7 @@ import pytest
 import geopandas as gpd
 from pydantic import ValidationError
 
-from reVeal.config.score_composite import Attribute
+from reVeal.config.score_composite import Attribute, ScoreCompositeConfig
 
 
 @pytest.mark.parametrize("attribute", ["tline_length_score", "generator_mwh_score"])
@@ -90,6 +90,25 @@ def test_attribute_invalid_dset(tmp_path):
     data = {"attribute": "some-col", "weight": 0.5, "dset_src": dset_src}
     with pytest.raises(OSError, match="Unable to read input vector file"):
         Attribute(**data)
+
+
+def test_scoreattributesconfig_valid_inputs(data_dir):
+    """
+    Test that ScoreCompositeConfig builds successfully with valid inputs.
+    """
+
+    grid = data_dir / "score_attributes" / "outputs" / "grid_char_attr_scores.gpkg"
+    attributes = [
+        {"attribute": "generator_mwh_score", "weight": 0.25},
+        {"attribute": "tline_length_score", "weight": 0.25},
+        {"attribute": "fttp_average_speed_score", "weight": 0.25},
+        {"attribute": "developable_area_score", "weight": 0.25},
+    ]
+    config_data = {
+        "grid": grid,
+        "attributes": attributes,
+    }
+    ScoreCompositeConfig(**config_data)
 
 
 if __name__ == "__main__":
