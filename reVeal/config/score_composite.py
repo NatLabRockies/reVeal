@@ -40,7 +40,18 @@ class Attribute(BaseModelStrict):
         return self
 
 
-class ScoreCompositeConfig(BaseGridConfig):
+class BaseScoreCompositeConfig(BaseGridConfig):
+    """
+    Base model for ScoreAttributesConfig with only required inputs and datatypes.
+    """
+
+    # pylint: disable=too-few-public-methods
+
+    # Input at instantiation
+    attributes: List
+
+
+class ScoreCompositeConfig(BaseScoreCompositeConfig):
     """
     Configuration for score-composite command.
     """
@@ -61,6 +72,21 @@ class ScoreCompositeConfig(BaseGridConfig):
         for attribute in self["attributes"]:
             if "dset_src" not in attribute:
                 attribute["dset_src"] = self["grid"]
+
+        return self
+
+    @model_validator(mode="before")
+    def base_validator(self):
+        """
+        Ensures that the base validation is run on input data types before
+        other "before"-mode model validators.
+
+        Returns
+        -------
+        self
+            Returns self.
+        """
+        BaseScoreCompositeConfig(**self)
 
         return self
 

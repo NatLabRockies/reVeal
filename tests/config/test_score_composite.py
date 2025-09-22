@@ -111,5 +111,140 @@ def test_scoreattributesconfig_valid_inputs(data_dir):
     ScoreCompositeConfig(**config_data)
 
 
+def test_scorecompositeconfig_nonexistent_grid():
+    """
+    Test that ScoreCompositeConfig raises a ValidationError when passed a non-existent
+    grid.
+    """
+
+    attributes = [
+        {"attribute": "generator_mwh_score", "weight": 0.25},
+        {"attribute": "tline_length_score", "weight": 0.25},
+        {"attribute": "fttp_average_speed_score", "weight": 0.25},
+        {"attribute": "developable_area_score", "weight": 0.25},
+    ]
+    config = {
+        "grid": "not-a-file.gpkg",
+        "attributes": attributes,
+    }
+    with pytest.raises(ValidationError, match="Path does not point to a file"):
+        ScoreCompositeConfig(**config)
+
+
+def test_scorecompositeconfig_bad_weight_sum(data_dir):
+    """
+    Test that ScoreCompositeConfig raises a ValidationError when the weights don't
+    sum to 1.
+    """
+    grid = data_dir / "score_attributes" / "outputs" / "grid_char_attr_scores.gpkg"
+    attributes = [
+        {"attribute": "generator_mwh_score", "weight": 0.20},
+        {"attribute": "tline_length_score", "weight": 0.25},
+        {"attribute": "fttp_average_speed_score", "weight": 0.25},
+        {"attribute": "developable_area_score", "weight": 0.25},
+    ]
+    config_data = {
+        "grid": grid,
+        "attributes": attributes,
+    }
+    with pytest.raises(
+        ValidationError, match="Weights of input attributes must sum to 1"
+    ):
+        ScoreCompositeConfig(**config_data)
+
+
+def test_scorecompositeconfig_missing_attribute(data_dir):
+    """
+    Test that ScoreCompositeConfig raises a ValidationError when passed an attribute
+    that doesn't exist in the grid dataset.
+    """
+
+    grid = data_dir / "score_attributes" / "outputs" / "grid_char_attr_scores.gpkg"
+    attributes = [
+        {"attribute": "generator_mwh_score", "weight": 0.25},
+        {"attribute": "tline_length_score", "weight": 0.25},
+        {"attribute": "fttp_average_speed_score", "weight": 0.25},
+        {"attribute": "not-a-col", "weight": 0.25},
+    ]
+    config_data = {
+        "grid": grid,
+        "attributes": attributes,
+    }
+    with pytest.raises(ValidationError, match="Attribute not-a-col not found"):
+        ScoreCompositeConfig(**config_data)
+
+
+@pytest.mark.parametrize(
+    "weight,err",
+    [
+        (-1, "Input should be greater than 0"),
+        (1.1, "Input should be less than or equal to 1"),
+        ("ten", "Input should be a valid number"),
+    ],
+)
+def test_scorecompositeconfig_invalid_weight(data_dir, weight, err):
+    """
+    Test that ScoreCompositeConfig raises the correct ValidationErrors when passed
+    various invalid weights.
+    """
+
+    grid = data_dir / "score_attributes" / "outputs" / "grid_char_attr_scores.gpkg"
+    attributes = [
+        {"attribute": "generator_mwh_score", "weight": weight},
+        {"attribute": "tline_length_score", "weight": 0.25},
+        {"attribute": "fttp_average_speed_score", "weight": 0.25},
+        {"attribute": "developable_area_score", "weight": 0.25},
+    ]
+    config_data = {
+        "grid": grid,
+        "attributes": attributes,
+    }
+
+    with pytest.raises(ValidationError, match=err):
+        ScoreCompositeConfig(**config_data)
+
+
+@pytest.mark.parametrize(
+    "attributes",
+    [
+        [{"attribute": "generator_mwh_score"}],
+        [{"weight": 0.5}],
+    ],
+)
+def test_scorecompositeconfig_missing_attribute_fields(data_dir, attributes):
+    """
+    Test that ScoreCompositeConfig raises a ValidationError when passed attributes
+     that are missing required fields.
+    """
+    grid = data_dir / "score_attributes" / "outputs" / "grid_char_attr_scores.gpkg"
+    config_data = {
+        "grid": grid,
+        "attributes": attributes,
+    }
+    with pytest.raises(ValidationError, match="Field required"):
+        ScoreCompositeConfig(**config_data)
+
+
+def test_scorecompositeconfig_attribute_dict(data_dir):
+    """
+    Test that ScoreCompositeConfig raises a ValidationError when passed
+    a dictionary for attributes instead of a list.
+    """
+    grid = data_dir / "score_attributes" / "outputs" / "grid_char_attr_scores.gpkg"
+    attributes = {
+        "generator_mwh_score": 0.25,
+        "tline_length_score": 0.25,
+        "fttp_average_speed_score": 0.25,
+        "developable_area_score": 0.25,
+    }
+
+    config_data = {
+        "grid": grid,
+        "attributes": attributes,
+    }
+    with pytest.raises(ValidationError, match="Input should be a valid list"):
+        ScoreCompositeConfig(**config_data)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])
