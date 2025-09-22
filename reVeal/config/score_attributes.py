@@ -5,7 +5,6 @@ config.score_attributes module
 from typing import Optional
 import warnings
 
-from pyogrio._ogr import _get_drivers_for_path
 from pydantic import (
     field_validator,
     model_validator,
@@ -82,9 +81,6 @@ class ScoreAttributesConfig(BaseScoreAttributesConfig):
     """
 
     # pylint: disable=too-few-public-methods
-    # Dynamically derived attributes
-    grid_ext: Optional[str] = None
-    grid_flavor: Optional[str] = None
 
     @model_validator(mode="before")
     def propagate_grid(self):
@@ -151,35 +147,6 @@ class ScoreAttributesConfig(BaseScoreAttributesConfig):
             value[k] = Attribute(**v)
 
         return value
-
-    @model_validator(mode="after")
-    def set_grid_ext(self):
-        """
-        Dynamically set the grid_ext property.
-        """
-        self.grid_ext = self.grid.suffix
-
-        return self
-
-    @model_validator(mode="after")
-    def set_grid_flavor(self):
-        """
-        Dynamically set the dset_flavor.
-
-        Raises
-        ------
-        TypeError
-            A TypeError will be raised if the input dset is not either a geoparquet
-            or compatible with reading with ogr.
-        """
-        if self.grid_ext == ".parquet":
-            self.grid_flavor = "geoparquet"
-        elif _get_drivers_for_path(self.grid):
-            self.grid_flavor = "ogr"
-        else:
-            raise TypeError(f"Unrecognized file format for {self.grid}.")
-
-        return self
 
     @model_validator(mode="after")
     def propagate_score_method(self):

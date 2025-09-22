@@ -109,7 +109,11 @@ def test_scoreattributesconfig_valid_inputs(data_dir):
         "attributes": attributes,
         "score_name": "composite_score",
     }
-    ScoreWeightedConfig(**config_data)
+    config = ScoreWeightedConfig(**config_data)
+
+    # check dynamic attributes are set
+    assert config.grid_ext is not None, "grid_ext not set"
+    assert config.grid_flavor is not None, "grid_flavor not set"
 
 
 def test_scoreweightedconfig_nonexistent_grid():
