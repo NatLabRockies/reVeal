@@ -107,6 +107,7 @@ def test_scoreattributesconfig_valid_inputs(data_dir):
     config_data = {
         "grid": grid,
         "attributes": attributes,
+        "score_name": "composite_score",
     }
     ScoreWeightedConfig(**config_data)
 
@@ -126,6 +127,7 @@ def test_scoreweightedconfig_nonexistent_grid():
     config = {
         "grid": "not-a-file.gpkg",
         "attributes": attributes,
+        "score_name": "composite_score",
     }
     with pytest.raises(ValidationError, match="Path does not point to a file"):
         ScoreWeightedConfig(**config)
@@ -146,6 +148,7 @@ def test_scoreweightedconfig_bad_weight_sum(data_dir):
     config_data = {
         "grid": grid,
         "attributes": attributes,
+        "score_name": "composite_score",
     }
     with pytest.raises(
         ValidationError, match="Weights of input attributes must sum to 1"
@@ -169,6 +172,7 @@ def test_scoreweightedconfig_missing_attribute(data_dir):
     config_data = {
         "grid": grid,
         "attributes": attributes,
+        "score_name": "composite_score",
     }
     with pytest.raises(ValidationError, match="Attribute not-a-col not found"):
         ScoreWeightedConfig(**config_data)
@@ -198,6 +202,7 @@ def test_scoreweightedconfig_invalid_weight(data_dir, weight, err):
     config_data = {
         "grid": grid,
         "attributes": attributes,
+        "score_name": "composite_score",
     }
 
     with pytest.raises(ValidationError, match=err):
@@ -220,6 +225,7 @@ def test_scoreweightedconfig_missing_attribute_fields(data_dir, attributes):
     config_data = {
         "grid": grid,
         "attributes": attributes,
+        "score_name": "composite_score",
     }
     with pytest.raises(ValidationError, match="Field required"):
         ScoreWeightedConfig(**config_data)
@@ -241,8 +247,29 @@ def test_scoreweightedconfig_attribute_dict(data_dir):
     config_data = {
         "grid": grid,
         "attributes": attributes,
+        "score_name": "composite_score",
     }
     with pytest.raises(ValidationError, match="Input should be a valid list"):
+        ScoreWeightedConfig(**config_data)
+
+
+def test_scoreweightedconfig_no_score_name(data_dir):
+    """
+    Test that ScoreWeightedConfig raises a ValidationError when score_method
+    is not provided.
+    """
+    grid = data_dir / "score_attributes" / "outputs" / "grid_char_attr_scores.gpkg"
+    attributes = [
+        {"attribute": "generator_mwh_score", "weight": 0.25},
+        {"attribute": "tline_length_score", "weight": 0.25},
+        {"attribute": "fttp_average_speed_score", "weight": 0.25},
+        {"attribute": "developable_area_score", "weight": 0.25},
+    ]
+    config_data = {
+        "grid": grid,
+        "attributes": attributes,
+    }
+    with pytest.raises(ValidationError, match="Field required"):
         ScoreWeightedConfig(**config_data)
 
 

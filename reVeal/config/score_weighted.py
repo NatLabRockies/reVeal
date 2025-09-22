@@ -49,6 +49,7 @@ class BaseScoreWeightedConfig(BaseGridConfig):
 
     # Input at instantiation
     attributes: List
+    score_name: str
 
 
 class ScoreWeightedConfig(BaseScoreWeightedConfig):
@@ -57,6 +58,7 @@ class ScoreWeightedConfig(BaseScoreWeightedConfig):
     """
 
     attributes: List[Attribute]
+    score_name: str
 
     @model_validator(mode="before")
     def propagate_grid(self):
