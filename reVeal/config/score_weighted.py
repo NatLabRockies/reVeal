@@ -40,9 +40,9 @@ class Attribute(BaseModelStrict):
         return self
 
 
-class BaseScoreCompositeConfig(BaseGridConfig):
+class BaseScoreWeightedConfig(BaseGridConfig):
     """
-    Base model for ScoreAttributesConfig with only required inputs and datatypes.
+    Base model for ScoreWeightedConfig with only required inputs and datatypes.
     """
 
     # pylint: disable=too-few-public-methods
@@ -51,9 +51,9 @@ class BaseScoreCompositeConfig(BaseGridConfig):
     attributes: List
 
 
-class ScoreCompositeConfig(BaseScoreCompositeConfig):
+class ScoreWeightedConfig(BaseScoreWeightedConfig):
     """
-    Configuration for score-composite command.
+    Configuration for score-weighted command.
     """
 
     attributes: List[Attribute]
@@ -86,7 +86,7 @@ class ScoreCompositeConfig(BaseScoreCompositeConfig):
         self
             Returns self.
         """
-        BaseScoreCompositeConfig(**self)
+        BaseScoreWeightedConfig(**self)
 
         return self
 

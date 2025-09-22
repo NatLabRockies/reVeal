@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-config.score_composite module tests
+config.score_weighted module tests
 """
 import pytest
 
 import geopandas as gpd
 from pydantic import ValidationError
 
-from reVeal.config.score_composite import Attribute, ScoreCompositeConfig
+from reVeal.config.score_weighted import Attribute, ScoreWeightedConfig
 
 
 @pytest.mark.parametrize("attribute", ["tline_length_score", "generator_mwh_score"])
@@ -94,7 +94,7 @@ def test_attribute_invalid_dset(tmp_path):
 
 def test_scoreattributesconfig_valid_inputs(data_dir):
     """
-    Test that ScoreCompositeConfig builds successfully with valid inputs.
+    Test that ScoreWeightedConfig builds successfully with valid inputs.
     """
 
     grid = data_dir / "score_attributes" / "outputs" / "grid_char_attr_scores.gpkg"
@@ -108,12 +108,12 @@ def test_scoreattributesconfig_valid_inputs(data_dir):
         "grid": grid,
         "attributes": attributes,
     }
-    ScoreCompositeConfig(**config_data)
+    ScoreWeightedConfig(**config_data)
 
 
-def test_scorecompositeconfig_nonexistent_grid():
+def test_scoreweightedconfig_nonexistent_grid():
     """
-    Test that ScoreCompositeConfig raises a ValidationError when passed a non-existent
+    Test that ScoreWeightedConfig raises a ValidationError when passed a non-existent
     grid.
     """
 
@@ -128,12 +128,12 @@ def test_scorecompositeconfig_nonexistent_grid():
         "attributes": attributes,
     }
     with pytest.raises(ValidationError, match="Path does not point to a file"):
-        ScoreCompositeConfig(**config)
+        ScoreWeightedConfig(**config)
 
 
-def test_scorecompositeconfig_bad_weight_sum(data_dir):
+def test_scoreweightedconfig_bad_weight_sum(data_dir):
     """
-    Test that ScoreCompositeConfig raises a ValidationError when the weights don't
+    Test that ScoreWeightedConfig raises a ValidationError when the weights don't
     sum to 1.
     """
     grid = data_dir / "score_attributes" / "outputs" / "grid_char_attr_scores.gpkg"
@@ -150,12 +150,12 @@ def test_scorecompositeconfig_bad_weight_sum(data_dir):
     with pytest.raises(
         ValidationError, match="Weights of input attributes must sum to 1"
     ):
-        ScoreCompositeConfig(**config_data)
+        ScoreWeightedConfig(**config_data)
 
 
-def test_scorecompositeconfig_missing_attribute(data_dir):
+def test_scoreweightedconfig_missing_attribute(data_dir):
     """
-    Test that ScoreCompositeConfig raises a ValidationError when passed an attribute
+    Test that ScoreWeightedConfig raises a ValidationError when passed an attribute
     that doesn't exist in the grid dataset.
     """
 
@@ -171,7 +171,7 @@ def test_scorecompositeconfig_missing_attribute(data_dir):
         "attributes": attributes,
     }
     with pytest.raises(ValidationError, match="Attribute not-a-col not found"):
-        ScoreCompositeConfig(**config_data)
+        ScoreWeightedConfig(**config_data)
 
 
 @pytest.mark.parametrize(
@@ -182,9 +182,9 @@ def test_scorecompositeconfig_missing_attribute(data_dir):
         ("ten", "Input should be a valid number"),
     ],
 )
-def test_scorecompositeconfig_invalid_weight(data_dir, weight, err):
+def test_scoreweightedconfig_invalid_weight(data_dir, weight, err):
     """
-    Test that ScoreCompositeConfig raises the correct ValidationErrors when passed
+    Test that ScoreWeightedConfig raises the correct ValidationErrors when passed
     various invalid weights.
     """
 
@@ -201,7 +201,7 @@ def test_scorecompositeconfig_invalid_weight(data_dir, weight, err):
     }
 
     with pytest.raises(ValidationError, match=err):
-        ScoreCompositeConfig(**config_data)
+        ScoreWeightedConfig(**config_data)
 
 
 @pytest.mark.parametrize(
@@ -211,9 +211,9 @@ def test_scorecompositeconfig_invalid_weight(data_dir, weight, err):
         [{"weight": 0.5}],
     ],
 )
-def test_scorecompositeconfig_missing_attribute_fields(data_dir, attributes):
+def test_scoreweightedconfig_missing_attribute_fields(data_dir, attributes):
     """
-    Test that ScoreCompositeConfig raises a ValidationError when passed attributes
+    Test that ScoreWeightedConfig raises a ValidationError when passed attributes
      that are missing required fields.
     """
     grid = data_dir / "score_attributes" / "outputs" / "grid_char_attr_scores.gpkg"
@@ -222,12 +222,12 @@ def test_scorecompositeconfig_missing_attribute_fields(data_dir, attributes):
         "attributes": attributes,
     }
     with pytest.raises(ValidationError, match="Field required"):
-        ScoreCompositeConfig(**config_data)
+        ScoreWeightedConfig(**config_data)
 
 
-def test_scorecompositeconfig_attribute_dict(data_dir):
+def test_scoreweightedconfig_attribute_dict(data_dir):
     """
-    Test that ScoreCompositeConfig raises a ValidationError when passed
+    Test that ScoreWeightedConfig raises a ValidationError when passed
     a dictionary for attributes instead of a list.
     """
     grid = data_dir / "score_attributes" / "outputs" / "grid_char_attr_scores.gpkg"
@@ -243,7 +243,7 @@ def test_scorecompositeconfig_attribute_dict(data_dir):
         "attributes": attributes,
     }
     with pytest.raises(ValidationError, match="Input should be a valid list"):
-        ScoreCompositeConfig(**config_data)
+        ScoreWeightedConfig(**config_data)
 
 
 if __name__ == "__main__":
