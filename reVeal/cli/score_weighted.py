@@ -113,6 +113,9 @@ def run(
     score_name : str
         Name of the output column in which the resulting weighted scores will be
         stored. If this column exists in the input grid, it will be overwritten.
+    out_dir : str
+        Output parent directory. Results will be saved to a file named
+        "grid_char_weighted_scores.gpkg".
     max_workers : [int, NoneType], optional
         Maximum number of workers to use for multiprocessing, by default None. This
         has no effect on this command.
