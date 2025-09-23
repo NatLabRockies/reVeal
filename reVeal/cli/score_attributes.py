@@ -109,9 +109,6 @@ def run(
             - "attribute": String indicating the name of the attribute to score.
             - "score_method": Method to use for coverting the attribute to a score
                 on the scale from 0 to 1. Refer to :obj:
-            - "method": String indicating characterization method to be performed.
-                Refer to
-                :obj:`reVeal.config.score_attributes.AttributeScoringMethodEnum`.
             - "invert": Boolean option. If specified as True, scored will be inverted
                 such that low values will be closer to 1, and higher values closer to 0.
                 Default is False, under which values are scored with low values closer
