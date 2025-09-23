@@ -6,6 +6,7 @@ import warnings
 from inspect import getmembers, isfunction
 import re
 import logging
+from math import isclose
 
 import pandas as pd
 import geopandas as gpd
@@ -258,7 +259,8 @@ def run_weighted_scoring(df, attributes):
     weights = np.array([a.weight for a in attributes])
 
     sum_weights = weights.sum()
-    if sum_weights != 1:
+
+    if not isclose(sum_weights, 1, abs_tol=1e-10, rel_tol=1e-10):
         raise ValueError(
             "Weights of input attributes must sum to 1. "
             f"Sum of input weights is: {sum_weights}."

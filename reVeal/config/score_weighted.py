@@ -3,6 +3,7 @@ config.score_composite module
 """
 from typing import List
 import warnings
+from math import isclose
 
 from typing_extensions import Annotated
 from pydantic import model_validator, FilePath, Field
@@ -107,7 +108,7 @@ class ScoreWeightedConfig(BaseScoreWeightedConfig):
         for attribute in self.attributes:
             sum_weights += attribute.weight
 
-        if sum_weights != 1:
+        if not isclose(sum_weights, 1, abs_tol=1e-10, rel_tol=1e-10):
             raise ValueError(
                 "Weights of input attributes must sum to 1. "
                 f"Sum of input weights is: {sum_weights}."
