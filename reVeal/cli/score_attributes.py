@@ -83,10 +83,10 @@ def _preprocessor(config, job_name, log_directory, verbose):
 
 def run(
     grid,
-    attributes,
-    score_method,
-    invert,
     out_dir,
+    attributes=None,
+    score_method=None,
+    invert=False,
     max_workers=None,
     _local=True,
 ):
@@ -102,6 +102,9 @@ def run(
         Must be an existing vector dataset in a format that can be opened by pyogrio.
         Does not strictly need to be a grid, or even a polygon dataset, but must be
         a vector dataset.
+    out_dir : str
+        Output parent directory. Results will be saved to a file named
+        "grid_char_attr_scores.gpkg".
     attributes: dict, optional
         Attributes to be scored. Must be a dictionary keyed by the name of
         the output column for each scored attribute. Each value must be another
@@ -127,9 +130,6 @@ def run(
         is False, under which values are scored with low values closer to 0 and high
         values closer to 1. Note that this parameter will have no effect if
         ``score_method`` is not specified.
-    out_dir : str
-        Output parent directory. Results will be saved to a file named
-        "grid_char_attr_scores.gpkg".
     max_workers : [int, NoneType], optional
         Maximum number of workers to use for multiprocessing, by default None. This
         has no effect on this command.
@@ -145,6 +145,9 @@ def run(
     # will produce duplicate log messages if running locally, so remove it
     if _local:
         remove_streamhandlers(LOGGER.parent)
+
+    if attributes is None:
+        attributes = {}
 
     config = ScoreAttributesConfig(
         grid=grid,
