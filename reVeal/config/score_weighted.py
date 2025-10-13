@@ -77,6 +77,7 @@ class ScoreWeightedConfig(BaseScoreWeightedConfig):
         self
             Returns self.
         """
+
         for attribute in self["attributes"]:
             if "dset_src" not in attribute:
                 attribute["dset_src"] = self["grid"]
@@ -94,6 +95,7 @@ class ScoreWeightedConfig(BaseScoreWeightedConfig):
         self
             Returns self.
         """
+
         BaseScoreWeightedConfig(**self)
 
         return self

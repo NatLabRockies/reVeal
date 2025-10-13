@@ -89,6 +89,8 @@ def run(
     _local=True,
 ):
     """
+    Calculated a composite score from specified attributes and weights.
+
     Convert specified attribute values of input grid to a scale of 0 to 1 using the
     specified method(s). Outputs a new GeoPackage containing the input grid with added
     attributes for scored attributes.

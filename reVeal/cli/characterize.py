@@ -23,6 +23,7 @@ def _log_inputs(config):
     config : dict
         Configuration dictionary
     """
+
     LOGGER.info(f"Inputs config: {json.dumps(config, indent=4)}")
 
 
@@ -46,6 +47,7 @@ def _preprocessor(config, job_name, log_directory, verbose):
         Configuration dictionary modified to include additional or augmented
         parameters.
     """
+
     if verbose:
         log_level = "DEBUG"
     else:
@@ -88,6 +90,8 @@ def run(
     _local=True,
 ):
     """
+    Run grid characterization.
+
     Characterize a vector grid based on specified raster and vector datasets.
     Outputs a new GeoPackage containing the input grid with added attributes for the
     user-specified characterizations.
@@ -102,10 +106,11 @@ def run(
         Must be an existing vector polygon dataset in a format that can be opened by
         pyogrio. Does not strictly need to be a grid, but some functionality may
         not work if it is not.
-    characterizations: dict
+    characterizations : dict
         Characterizations to be performed. Must be a dictionary keyed by the name of
         the output attribute for each characterization. Each value must be another
         dictionary with the following keys:
+
             - "dset": String indicating relative path within data_dir to dataset to be
                 characterized.
             - "method": String indicating characterization method to be performed.

@@ -87,6 +87,8 @@ def run(
     _local=True,
 ):
     """
+    Normalize numeric attribute values to scale from 0 to 1.
+
     Convert specified attribute values of input grid to a scale of 0 to 1 using the
     specified method(s). Outputs a new GeoPackage containing the input grid with added
     attributes for normalized attributes.

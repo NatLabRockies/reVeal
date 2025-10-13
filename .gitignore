@@ -141,3 +141,7 @@ dmypy.json
 *.gpkg-shm
 *.gpkg-wal
 *.tif.aux.xml
+
+# sphinx docs
+docs/_build
+docs/source/_autosummary

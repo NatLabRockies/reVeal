@@ -14,6 +14,14 @@ logger = logging.getLogger(__name__)
 commands = [characterize_cmd, normalize_cmd, score_weighted_cmd]
 main = make_cli(commands, info={"name": "reVeal", "version": __version__})
 
+# export GAPs commands to namespace for documentation
+batch = main.commands["batch"]
+pipeline = main.commands["pipeline"]
+script = main.commands["script"]
+status = main.commands["status"]
+reset_status = main.commands["reset-status"]
+template_configs = main.commands["template-configs"]
+
 if __name__ == "__main__":
     try:
         main(obj={})
