@@ -13,9 +13,6 @@ ignore=CSV, config, data
 # regex matches against base names, not paths.
 ignore-patterns=ref.*?py
 
-# Paths to ignore
-ignore-paths=^docs/.*$
-
 # Python code to execute, usually for sys.path manipulation such as
 # pygtk.require().
 
