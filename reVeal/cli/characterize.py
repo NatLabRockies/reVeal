@@ -207,10 +207,6 @@ characterize_cmd = CLICommandFromFunction(
     config_preprocessor=_preprocessor,
 )
 
-unskip_params = ["out_dir", "max_workers"]
-for unskip_param in unskip_params:
-    characterize_cmd.documentation.skip_params.remove(unskip_param)
-
 main = as_click_command(characterize_cmd)
 
 

@@ -178,8 +178,6 @@ normalize_cmd = CLICommandFromFunction(
     config_preprocessor=_preprocessor,
 )
 
-normalize_cmd.documentation.skip_params.remove("out_dir")
-
 main = as_click_command(normalize_cmd)
 
 

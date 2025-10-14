@@ -164,8 +164,6 @@ score_weighted_cmd = CLICommandFromFunction(
     config_preprocessor=_preprocessor,
 )
 
-score_weighted_cmd.documentation.skip_params.remove("out_dir")
-
 main = as_click_command(score_weighted_cmd)
 
 
