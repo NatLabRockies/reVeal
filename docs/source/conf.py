@@ -208,6 +208,7 @@ add_module_names = False  # Remove namespaces from class/method signatures
 html_show_sourcelink = False
 numpy_show_class_member = True
 napoleon_google_docstring = False
+napoleon_numpy_docstring = True
 napoleon_use_param = False
 napoleon_use_ivar = False
 napoleon_use_rtype = False

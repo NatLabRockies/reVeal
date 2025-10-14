@@ -109,45 +109,45 @@ def run(
     characterizations : dict
         Characterizations to be performed. Must be a dictionary keyed by the name of
         the output attribute for each characterization. Each value must be another
-        dictionary with the following keys:
+        dictionary with the following keys
 
-            - "dset": String indicating relative path within data_dir to dataset to be
-                characterized.
-            - "method": String indicating characterization method to be performed.
-                Refer to
-                :obj:`reVeal.config.characterize.VALID_CHARACTERIZATION_METHODS`.
-            - "attribute": Attribute to summarize. Only required for certain methods.
-                Default is None/null.
-            - "weights_dset": String indicating relative path within data_dir to
-                dataset to be used as weights. Only applies to characterization
-                methods for rasters; ignored otherwise.
-            - "neighbor_order": Integer indicating the order of neighbors to include
-                in the characterization of each grid cell. For example,
-                neighbor_order=1 would result in included first-order queen's case
-                neighbors. Optional, default is 0 which does not include neighbors.
-            - "buffer_distance": Float indicating buffer distance to apply in the
-                characterization of each grid cell. Units are based on the CRS of the
-                input grid dataset. For instance, a value of 500 in CRS EPGS:5070
-                would apply a buffer of 500m to each grid cell before characterization.
-                Optional, default is 0 which does not apply a buffer.
-            - "parallel": Boolean indicating whether to run the characterization in
-                parallel. This method is only applicable to methods specified as
-                "supports_parallel" in
-                :obj:`reVeal.config.VALID_CHARACTERIZATION_METHODS`. Default is True,
-                which will run applicable method in parallel and have no effect for
-                other methods. This value should only be changed to False for small
-                input grids, where the performance overhead of setting up parallel
-                processing will outweigh the speedup of running operations in parallel.
-                As a general rule of thumb, as long as the number of grid cells in your
-                grid is an order of magnitude larger than the number of cores
-                available, using ```parallel=True``` should yield improved performance.
-            - "max_workers": Integer indicating the number of workers to use for
-                parallel processing. Will only be applied to methods that support
-                parallel processing. If the top-level "max_workers" is also applied,
-                this value will take precedence. If neither are specified, all
-                available workers will be used for parallel processing.
-    expressions: dict
-        Additional expressions to be calculated. Must be a dictionary keyes by the name
+        -   ``dset``: String indicating relative path within ``data_dir`` to dataset to
+            be characterized.
+        -   ``method``: String indicating characterization method to be performed.
+            Refer to :obj:`reVeal.config.characterize.VALID_CHARACTERIZATION_METHODS`.
+        -   ``attribute``: Attribute to summarize. Only required for certain methods.
+            Default is None/null.
+        -   ``weights_dset``: String indicating relative path within data_dir to
+            dataset to be used as weights. Only applies to characterization methods for
+            rasters; ignored otherwise.
+        -   ``neighbor_order``: Integer indicating the order of neighbors to include in
+            the characterization of each grid cell. For example, neighbor_order=1 would
+            result in included first-order queen's case neighbors. Optional, default is
+            0 which does not include neighbors.
+        -   ``buffer_distance``: Float indicating buffer distance to apply in the
+            characterization of each grid cell. Units are based on the CRS of the input
+            grid dataset. For instance, a value of 500 in CRS EPGS:5070 would apply a
+            buffer of 500m to each grid cell before characterization. Optional, default
+            is 0 which does not apply a buffer.
+        -   ``parallel``: Boolean indicating whether to run the characterization in
+            parallel. This method is only applicable to methods specified as
+            ``supports_parallel`` in
+            :obj:`reVeal.config.VALID_CHARACTERIZATION_METHODS`. Default is True, which
+            will run applicable method in parallel and have no effect for other
+            methods. This value should only be changed to False for small input grids,
+            where the performance overhead of setting up parallel processing will
+            outweigh the speedup of running operations in parallel. As a general rule
+            of thumb, as long as the number of grid cells in your grid is an order of
+            magnitude larger than the number of cores available, using
+            ``parallel=True`` should yield improved performance.
+        -   ``max_workers``: Integer indicating the number of workers to use for
+            parallel processing. Will only be applied to methods that support parallel
+            processing. If the top-level ``max_workers`` is also applied, this value
+            will take precedence. If neither are specified, all available workers will
+            be used for parallel processing.
+
+    expressions : dict
+        Additional expressions to be calculated. Must be a dictionary by the name
         of the output attribute for each expression. Each value must be a string
         indicating the expression to be calculated. Expression strings can reference
         one or more attributes/keys referenced in the characterizations dictionary.
@@ -157,7 +157,7 @@ def run(
         Maximum number of workers to use for multiprocessing when running applicable
         methods in parallel. By default None, will use all available workers for
         applicable methods. Note that this value will only be applied to
-        characterizations where "max_workers" is not specified at the
+        characterizations where ``max_workers`` is not specified at the
         characterization-level configuration.
     _local : bool
         Flag indicating whether the code is being run locally or via HPC job
@@ -199,6 +199,11 @@ characterize_cmd = CLICommandFromFunction(
     add_collect=False,
     config_preprocessor=_preprocessor,
 )
+
+unskip_params = ["out_dir", "max_workers"]
+for unskip_param in unskip_params:
+    characterize_cmd.documentation.skip_params.remove(unskip_param)
+
 main = as_click_command(characterize_cmd)
 
 
