@@ -1,5 +1,3 @@
-.. _reVeal-main:
-
 .. autosummary::
 
    :toctree: _autosummary

@@ -212,3 +212,25 @@ napoleon_numpy_docstring = True
 napoleon_use_param = False
 napoleon_use_ivar = False
 napoleon_use_rtype = False
+
+
+def skip_pydantic_methods(app, what, name, obj, skip, options):
+    if name in (
+        "model_dump_json",
+        "model_json_schema",
+        "model_dump",
+        "model_construct",
+        "model_copy",
+        "model_validate",
+        "model_validate_json",
+        "model_validate_strings",
+    ):
+        return True
+    return None
+
+
+def setup(app):
+    app.connect("autodoc-skip-member", skip_pydantic_methods)
+
+
+suppress_warnings = ["toc.not_included"]

@@ -9,14 +9,19 @@ def dataframe_split(df, n_parts):
     """
     Splits dataframe into the specified number of roughly equal parts. This function
     is similar to numpy.array_split, with a few major differences:
-    1. It expects an input dataframe, not an array.
-    2. It only accepts as input the number of input parts (am array of indices cannot
-       be passed)
-    3. It does not use .swapaxes, which is deprecated and raises a FutureWarning.
-    4. The number of parts returned will be capped at the size of the input dataframe,
-       whereas numpy.array_split always returns exactly n_parts, even if some parts are
-       empty.
-    5. It returns a generator, not a list.
+
+    1.  It expects an input dataframe, not an array.
+
+    2.  It only accepts as input the number of input parts (am array of indices cannot
+        be passed)
+
+    3.  It does not use .swapaxes, which is deprecated and raises a FutureWarning.
+
+    4.  The number of parts returned will be capped at the size of the input dataframe,
+        whereas numpy.array_split always returns exactly n_parts, even if some parts are
+        empty.
+
+    5.  It returns a generator, not a list.
 
     Parameters
     ----------

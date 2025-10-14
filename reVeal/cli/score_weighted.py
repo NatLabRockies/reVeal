@@ -113,14 +113,14 @@ def run(
         -   ``weight``: Float in the range of ``>0, <=1`` indicating the weight to
             apply to the attribute in the composite weighted score.
 
-        .. important::
-        Note that weights across all attributes must sum to 1.
+        .. note::
+            Note that weights across all attributes must sum to 1.
     score_name : str
         Name of the output column in which the resulting weighted scores will be
         stored.
 
-        .. important::
-        If this column exists in the input grid, it will be overwritten.
+        .. note::
+            If this column exists in the input grid, it will be overwritten.
     out_dir : str
         Output parent directory. Results will be saved to a file named
         "grid_char_weighted_scores.gpkg".

@@ -2,8 +2,8 @@
 """
 normalize module
 
-Note that to expose methods here for by reVeal.grid.NormalizeGrid.run() function
-and functions dependent on it, the function must be prefixed with "calc_".
+Note that to expose methods here for by :func:`reVeal.grid.NormalizeGrid.run()`
+and functions dependent on it, the function must be prefixed with ``calc_``.
 """
 import pandas as pd
 from scipy.stats import percentileofscore
