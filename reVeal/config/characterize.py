@@ -212,6 +212,7 @@ class Characterization(BaseModelStrict):
         """
         Dynamically set the dset_ext property.
         """
+
         self.dset_ext = self.dset_src.suffix
 
         return self
@@ -244,6 +245,7 @@ class Characterization(BaseModelStrict):
         Also issues a warning if where is specified but doesn't apply to the specified
         method.
         """
+
         if self.where:
             # always check, even if it doesn't apply (overkill, but just in case)
             check_eval_str(self.where)
@@ -271,6 +273,7 @@ class Characterization(BaseModelStrict):
             A TypeError will be raised if the input attribute exists in the dataset
             but is not a numeric datatype.
         """
+
         method_info = VALID_CHARACTERIZATION_METHODS.get(self.method)
         if method_info is None or method_info.get("attribute_required") is None:
             raise ValueError(
@@ -299,6 +302,7 @@ class Characterization(BaseModelStrict):
         """
         Dynamically set the crs property.
         """
+
         if self.dset_format == "raster":
             self.crs = get_crs_raster(self.dset_src)
         elif self.dset_ext == ".parquet":
@@ -313,6 +317,7 @@ class Characterization(BaseModelStrict):
         """
         Check that the specified method is applicable to the input dset_format.
         """
+
         applicable_types = VALID_CHARACTERIZATION_METHODS.get(self.method, {}).get(
             "valid_inputs"
         )
@@ -330,6 +335,7 @@ class Characterization(BaseModelStrict):
         Check that, if weights_dset is provided, the selected method is applicable
         to the method. If not, warn the user.
         """
+
         if self.weights_dset:
             method_info = VALID_CHARACTERIZATION_METHODS.get(self.method)
             if not method_info.get("supports_weights"):
@@ -345,6 +351,7 @@ class Characterization(BaseModelStrict):
         Check that, if parallel is set to True or max_workers was provided, the
         selected method can be parallelized. If not, warn the user.
         """
+
         if self.parallel or self.max_workers:
             method_info = VALID_CHARACTERIZATION_METHODS.get(self.method)
             if not method_info.get("supports_parallel"):
@@ -389,6 +396,7 @@ class CharacterizeConfig(BaseCharacterizeConfig):
         self
             Returns self.
         """
+
         for v in self["characterizations"].values():
             if "data_dir" not in v:
                 v["data_dir"] = self["data_dir"]
@@ -406,6 +414,7 @@ class CharacterizeConfig(BaseCharacterizeConfig):
         self
             Returns self.
         """
+
         BaseCharacterizeConfig(**self)
 
         return self
@@ -449,6 +458,7 @@ class CharacterizeConfig(BaseCharacterizeConfig):
         dict
             Validated expressions.
         """
+
         # pylint: disable=no-self-argument
         for k, v in value.items():
             if not isinstance(v, str):
@@ -464,6 +474,7 @@ class CharacterizeConfig(BaseCharacterizeConfig):
         """
         Dynamically set the crs property.
         """
+
         if Path(self.grid).suffix == ".parquet":
             self.grid_crs = get_crs_parquet(self.grid)
         else:
@@ -476,6 +487,7 @@ class CharacterizeConfig(BaseCharacterizeConfig):
         """
         Check that CRSs of individual characterizations match CRS of the grid.
         """
+
         for characterization in self.characterizations.values():
             if characterization.crs != self.grid_crs:
                 raise ValueError(

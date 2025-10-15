@@ -2,8 +2,8 @@
 """
 overlay module
 
-Note that to expose methods here for by reVeal.grid.CharacterizeGrid.run() function
-and functions dependent on it, the function must be prefixed with "calc_".
+Note that to expose methods here for by :func:`reVeal.grid.CharacterizeGrid.run()`
+and functions dependent on it, the function must be prefixed with ``calc_``.
 """
 # pylint: disable=unused-argument
 from multiprocessing import cpu_count

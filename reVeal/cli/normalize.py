@@ -87,6 +87,8 @@ def run(
     _local=True,
 ):
     """
+    Normalize numeric attribute values to scale from 0 to 1.
+
     Convert specified attribute values of input grid to a scale of 0 to 1 using the
     specified method(s). Outputs a new GeoPackage containing the input grid with added
     attributes for normalized attributes.
@@ -101,31 +103,37 @@ def run(
     out_dir : str
         Output parent directory. Results will be saved to a file named
         "grid_char_norm.gpkg".
-    attributes: dict, optional
+    attributes : dict, optional
         Attributes to be normalized. Must be a dictionary keyed by the name of
         the output column for each normalized attribute. Each value must be another
         dictionary with the following keys:
-            - "attribute": String indicating the name of the attribute to normalize.
-            - "normalize_method": Method to use for normalizing the attribute to a
-                scale from 0 to 1. Refer to :obj:
-            - "invert": Boolean option. If specified as True, normalized values will be
-                inverted such that low values will be closer to 1, and higher values
-                closer to 0. Default is False, under which values are normalized with
-                low values closer to 0 and high values closer to 1.
-        If ``attributes`` is not specified, ``normalize_method`` must be provided.
+
+        -   ``attribute``: String indicating the name of the attribute to normalize.
+
+        -   ``normalize_method``: Method to use for normalizing the attribute to a
+            scale from 0 to 1. Refer to
+            :obj:`reVeal.config.normalize.NormalizeMethodEnum`.
+
+        -   ``invert``: Boolean option. If specified as ``True``, normalized values
+            will be inverted such that low values will be closer to 1, and higher
+            values closer to 0. Default is False, under which values are normalized
+            with low values closer to 0 and high values closer to 1. If ``attributes``
+            is not specified, ``normalize_method`` must be provided.
+
     normalize_method : str, optional
         Optional default method to be used for normalization. If specified, this method
         will be applied to all numeric attributes in the input grid that are not
         specified separately in the input ``attributes``. Each output column will be
         named based on the corresponding input column plus a suffix "_score". If
-        ``normalize_method`` is not specified, ``attributes`` must be provided
+        ``normalize_method`` is not specified, ``attributes`` must be provided.  Refer
+        to :obj:`reVeal.config.normalize.NormalizeMethodEnum`.
     invert : bool, optional
-        If specified as True and ``normalize_method`` is provided, all attributes not
-        specified separately in ``attributes`` will be normalized with values inverted
-        (i.e., low values will be closer to 1, and higher values closer to 0). Default
-        is False, under which values are normalized with low values closer to 0 and
-        high values closer to 1. Note that this parameter will have no effect if
-        ``normalize_method`` is not specified.
+        If specified as ``True`` and ``normalize_method`` is provided, all attributes
+        not specified separately in ``attributes`` will be normalized with values
+        inverted (i.e., low values will be closer to 1, and higher values closer to 0).
+        Default is ``False``, under which values are normalized with low values closer
+        to 0 and high values closer to 1. Note that this parameter will have no effect
+        if ``normalize_method`` is not specified.
     _local : bool
         Flag indicating whether the code is being run locally or via HPC job
         submissions. NOTE: This is not a user provided parameter - it is determined
@@ -169,6 +177,7 @@ normalize_cmd = CLICommandFromFunction(
     add_collect=False,
     config_preprocessor=_preprocessor,
 )
+
 main = as_click_command(normalize_cmd)
 
 

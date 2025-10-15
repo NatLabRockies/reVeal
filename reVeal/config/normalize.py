@@ -93,6 +93,7 @@ class NormalizeConfig(BaseNormalizeConfig):
         self
             Returns self.
         """
+
         if self.get("attributes"):
             for v in self["attributes"].values():
                 if "dset_src" not in v:
@@ -111,6 +112,7 @@ class NormalizeConfig(BaseNormalizeConfig):
         self
             Returns self.
         """
+
         BaseNormalizeConfig(**self)
 
         return self
@@ -120,6 +122,7 @@ class NormalizeConfig(BaseNormalizeConfig):
         """
         Check that either attributes or normalize_method was provided as an input.
         """
+
         if not self.get("normalize_method") and not self.get("attributes"):
             raise ValueError("Either normalize_method or attributes must be specified.")
 
