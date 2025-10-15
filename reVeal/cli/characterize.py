@@ -138,10 +138,10 @@ def run(
                 available, using ```parallel=True``` should yield improved performance.
             - "max_workers": Integer indicating the number of workers to use for
                 parallel processing. Will only be applied to methods that support
-                parallel processing. If the top-level ``max_workers`` from the
-                ``execution_control`` section is also specified, this value will take
-                precedence. If neither are specified, all available workers will be
-                used for parallel processing.
+                parallel processing. This input will take precedence over the top-level
+                ``max_workers`` from the ``execution_control`` block  (if any). If
+                neither are specified, all available workers will be used for parallel
+                processing.
     expressions: dict
         Additional expressions to be calculated. Must be a dictionary keyes by the name
         of the output attribute for each expression. Each value must be a string
