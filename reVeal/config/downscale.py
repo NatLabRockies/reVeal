@@ -106,7 +106,7 @@ class BaseDownscaleConfig(BaseGridConfig):
         min_year = df[self.load_year].min()
         if min_year < self.baseline_year:
             raise ValueError(
-                f"First year in load_projections ({min_year}) precedes the input "
+                f"First year in load_projections ({min_year}) predates the input "
                 f"baseline_year ({self.baseline_year})."
             )
 

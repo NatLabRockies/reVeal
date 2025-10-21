@@ -223,8 +223,34 @@ def test_validate_load_projections_nonnumeric_attribute(data_dir, tmp_path, test
         BaseDownscaleConfig(**config)
 
 
-# non-numeric columns
-# invalid baseline year
+def test_validate_load_projections_predates_baseline_error(data_dir):
+    """
+    Test that BaseDownsaleConfig raises a ValueError when the load projections predate
+    the baseline load year.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "baseline_year": 2030,
+        "load_projections": load_projections,
+        "projection_resolution": "total",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+    }
+
+    with pytest.raises(ValueError, match="First year in load_projections .* predates"):
+        BaseDownscaleConfig(**config)
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])
