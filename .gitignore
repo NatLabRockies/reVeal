@@ -145,3 +145,5 @@ dmypy.json
 # sphinx docs
 docs/_build
 docs/source/_autosummary
+
+scripts/
