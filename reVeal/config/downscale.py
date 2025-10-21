@@ -60,7 +60,7 @@ class BaseDownscaleConfig(BaseGridConfig):
             dtype = dset_attributes.get(check_col)
             if not dtype:
                 raise ValueError(
-                    f"Specified grid attribute {check_col} does not exist in the input "
+                    f"Specified attribute {check_col} does not exist in the input "
                     f"dataset {self.grid}."
                 )
             if not is_numeric_dtype(dtype):
