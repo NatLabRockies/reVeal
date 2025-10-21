@@ -252,5 +252,42 @@ def test_validate_load_projections_predates_baseline_error(data_dir):
         BaseDownscaleConfig(**config)
 
 
+def test_validate_load_projections_duplicate_years(data_dir, tmp_path):
+    """
+    Test that BaseDownscaleConfig raises a ValueError when there are duplicate
+    years in the load_projections dataset.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    src_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+
+    load_df = pd.read_csv(src_projections)
+    new_load_df = pd.concat([load_df.iloc[0:1], load_df], ignore_index=True)
+    load_projections = tmp_path / "projections.csv"
+    new_load_df.to_csv(load_projections, header=True, index=False)
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "total",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+    }
+
+    with pytest.raises(
+        ValueError, match="Input load_projections dataset has duplicate years"
+    ):
+        BaseDownscaleConfig(**config)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])

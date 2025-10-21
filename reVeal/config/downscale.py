@@ -110,15 +110,22 @@ class BaseDownscaleConfig(BaseGridConfig):
                 f"baseline_year ({self.baseline_year})."
             )
 
+        if df["year"].duplicated().any():
+            raise ValueError("Input load_projections dataset has duplicate years")
+
         return self
 
 
-# class RegionalDownscaleConfig(BaseDownscaleConfig):
-#     """
-#     Model for regional downscaling configuration. Extends BaseDownscaleConfig with
-#     additional validations for regional downscaling.
-#     """
-#     # pylint: disable=too-few-public-methods
+class RegionalDownscaleConfig(BaseDownscaleConfig):
+    """
+    Model for regional downscaling configuration. Extends BaseDownscaleConfig with
+    additional validations for regional downscaling.
+    """
+
+    # pylint: disable=too-few-public-methods
+    load_region: str
+
+    # validate the the load region column exists in the input loads dataframe
 
 
 # class DownscaleConfig(BaseDownscaleConfig):
