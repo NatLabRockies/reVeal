@@ -190,6 +190,24 @@ def test_read_vectors_with_expression_injection(data_dir, capfd, bad_expression,
     ), "stdout is not empty. Injection occurred via dataframe.eval()."
 
 
+@pytest.mark.parametrize("source_ext", ["parquet", "gpkg"])
+@pytest.mark.parametrize("columns", [["emm_zone_id"], ["geometry", "emm_zone"]])
+def test_read_vectors_with_kwargs(data_dir, source_ext, columns):
+    """
+    Test that read_vectors() passes columns kwarg through correctly for both
+    pyogrio and parquet datasets.
+    """
+    source = (
+        data_dir / "downscale" / "inputs" / "regions" / f"eer_adp_zones.{source_ext}"
+    )
+
+    df = read_vectors(source, columns=columns)
+
+    expected_rows = 202
+    assert len(df) == expected_rows, "Unexpected number of rows returned"
+    assert len(df.columns) == len(columns), "Unexpected number of columns returned"
+
+
 @pytest.mark.parametrize(
     "attribute,expected_result,err",
     [

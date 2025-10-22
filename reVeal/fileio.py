@@ -251,6 +251,9 @@ def read_vectors(vector_src, where=None, **kwargs):
     """
     Read vector dataset in GeoParquet or pyogrio-compatible format to GeoDataFrame.
 
+    Note that if kwargs are passed such that the geometry column is not read, the
+    returned object will be a DataFrame rather than GeoDataFrame.
+
     Parameters
     ----------
     vector_src : str
@@ -265,8 +268,10 @@ def read_vectors(vector_src, where=None, **kwargs):
 
     Returns
     -------
-    geopandas.GeoDataFrame
-        Returns GeoDataFrame of vectors.
+    [geopandas.GeoDataFrame, pandas.DataFrame
+        Returns GeoDataFrame of vectors. If kwargs are passed such that the geometry
+        column is not read, the returned object will be a DataFrame rather than a
+        GeoDataFrame.
 
     Raises
     ------
@@ -281,6 +286,12 @@ def read_vectors(vector_src, where=None, **kwargs):
         else:
             df = gpd.read_parquet(vector_src, **kwargs)
     elif _get_drivers_for_path(vector_src):
+        if (
+            "columns" in kwargs
+            and "geometry" not in kwargs["columns"]
+            and "read_geometry" not in kwargs
+        ):
+            kwargs["read_geometry"] = False
         df = gpd.read_file(vector_src, **kwargs)
     else:
         raise IOError(
