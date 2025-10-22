@@ -551,5 +551,104 @@ def test_regionaldownscaleconfig_region_names_error(data_dir):
         RegionalDownscaleConfig(**config)
 
 
+def test_regionaldownscaleconfig_neither_load_regions_nor_region_weights(data_dir):
+    """
+    Test that RegionalDownsaleConfig raises a ValueError when neither load_regions nor
+    region_weights are specified.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "regions": regions,
+        "region_names": "emm_zone",
+    }
+
+    with pytest.raises(
+        ValueError, match="Either load_regions or region_weights must be specified"
+    ):
+        RegionalDownscaleConfig(**config)
+
+
+def test_regionaldownscaleconfig_both_load_regions_and_region_weights(data_dir):
+    """
+    Test that RegionalDownsaleConfig raises a ValueError when both load_regions and
+    region_weights are specified.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+    region_weights = {
+        "Carolinas": 0.04,
+        "Central Great Plains": 0.04,
+        "Florida": 0.04,
+        "Great Basin": 0.04,
+        "Metropolitan Chicago": 0.04,
+        "Metropolitan New York": 0.04,
+        "Michigan": 0.04,
+        "Mid-Atlantic": 0.04,
+        "Middle Mississippi Valley": 0.04,
+        "Mississippi Delta": 0.04,
+        "New England": 0.04,
+        "Northern California": 0.04,
+        "Northern Great Plains": 0.04,
+        "Northwest": 0.04,
+        "Ohio Valley": 0.04,
+        "Rockies": 0.04,
+        "Southeast": 0.04,
+        "Southern California": 0.04,
+        "Southern Great Plains": 0.04,
+        "Southwest": 0.04,
+        "Tennessee Valley": 0.04,
+        "Texas": 0.04,
+        "Upper Mississippi Valley": 0.04,
+        "Upstate New York": 0.04,
+        "Virginia": 0.04,
+    }
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "load_regions": "zone",
+        "regions": regions,
+        "region_weights": region_weights,
+        "region_names": "emm_zone",
+    }
+
+    with pytest.raises(
+        ValueError, match="Only one of load_regions or region_weights can be specified"
+    ):
+        RegionalDownscaleConfig(**config)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])

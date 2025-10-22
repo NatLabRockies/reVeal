@@ -177,6 +177,22 @@ class RegionalDownscaleConfig(BaseDownscaleConfig):
     regions_ext: Optional[str] = None
     regions_flavor: Optional[str] = None
 
+    @model_validator(mode="before")
+    def check_load_regions_or_region_weights(self):
+        """
+        Check that either load_regions or region_weights is provided, and not both.
+        """
+        load_regions = self.get("load_regions")
+        region_weights = self.get("region_weights")
+        if load_regions is None and region_weights is None:
+            raise ValueError("Either load_regions or region_weights must be specified.")
+        if load_regions is not None and region_weights is not None:
+            raise ValueError(
+                "Only one of load_regions or region_weights can be specified."
+            )
+
+        return self
+
     @model_validator(mode="after")
     def set_regions_ext(self):
         """
