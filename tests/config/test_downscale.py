@@ -521,7 +521,7 @@ def test_regionaldownscaleconfig_geom_type_error(data_dir, tmp_path):
         / "downscale"
         / "inputs"
         / "load_growth_projections"
-        / "eer_us-adp-2024-central_national.csv"
+        / "eer_us-adp-2024-central_regional.csv"
     )
     src_regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
     regions_df = gpd.read_file(src_regions)
@@ -562,7 +562,7 @@ def test_regionaldownscaleconfig_crs_error(data_dir, tmp_path):
         / "downscale"
         / "inputs"
         / "load_growth_projections"
-        / "eer_us-adp-2024-central_national.csv"
+        / "eer_us-adp-2024-central_regional.csv"
     )
     src_regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
     regions_df = gpd.read_file(src_regions).to_crs("EPSG:4326")
@@ -601,7 +601,7 @@ def test_regionaldownscaleconfig_region_names_error(data_dir):
         / "downscale"
         / "inputs"
         / "load_growth_projections"
-        / "eer_us-adp-2024-central_national.csv"
+        / "eer_us-adp-2024-central_regional.csv"
     )
     regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
 
@@ -637,7 +637,7 @@ def test_regionaldownscaleconfig_neither_load_regions_nor_region_weights(data_di
         / "downscale"
         / "inputs"
         / "load_growth_projections"
-        / "eer_us-adp-2024-central_national.csv"
+        / "eer_us-adp-2024-central_regional.csv"
     )
     regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
 
@@ -672,7 +672,7 @@ def test_regionaldownscaleconfig_both_load_regions_and_region_weights(data_dir):
         / "downscale"
         / "inputs"
         / "load_growth_projections"
-        / "eer_us-adp-2024-central_national.csv"
+        / "eer_us-adp-2024-central_regional.csv"
     )
     regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
     region_weights = {
@@ -736,7 +736,7 @@ def test_regionaldownscaleconfig_missing_load_regions(data_dir):
         / "downscale"
         / "inputs"
         / "load_growth_projections"
-        / "eer_us-adp-2024-central_national.csv"
+        / "eer_us-adp-2024-central_regional.csv"
     )
     regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
     config = {
