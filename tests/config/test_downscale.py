@@ -435,12 +435,120 @@ def test_regionaldownscaleconfig_resolution_error(data_dir):
         RegionalDownscaleConfig(**config)
 
 
-# TODO:
-# Tests for RegionalDownscaleConfig:
-# raises errors under validate_regions for each of:
-#        1. non-polygon geometries
-#        2. missing region_names column
-#        3. CRS doesn't match grid CRS
+def test_regionaldownscaleconfig_geom_type_error(data_dir, tmp_path):
+    """
+    Test that RegionalDownsaleConfig raises a TypeError when passed input regions that
+    are not polygons/multipolygons.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    src_regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+    regions_df = gpd.read_file(src_regions)
+    regions_df["geometry"] = regions_df.centroid
+    regions = tmp_path / "regions.gpkg"
+    regions_df.to_file(regions)
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "load_regions": "zone",
+        "regions": regions,
+        "region_names": "emm_zone",
+    }
+
+    with pytest.raises(
+        TypeError,
+        match="Input regions dataset must have geometries of one of the following",
+    ):
+        RegionalDownscaleConfig(**config)
+
+
+def test_regionaldownscaleconfig_crs_error(data_dir, tmp_path):
+    """
+    Test that RegionalDownsaleConfig raises a TypeError when passed input regions that
+    have a different CRS than the grid.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    src_regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+    regions_df = gpd.read_file(src_regions).to_crs("EPSG:4326")
+    regions = tmp_path / "regions.gpkg"
+    regions_df.to_file(regions)
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "load_regions": "zone",
+        "regions": regions,
+        "region_names": "emm_zone",
+    }
+
+    with pytest.raises(
+        ValueError, match="CRS of regions dataset .* does not match grid"
+    ):
+        RegionalDownscaleConfig(**config)
+
+
+def test_regionaldownscaleconfig_region_names_error(data_dir):
+    """
+    Test that RegionalDownsaleConfig raises a ValueError when the specified
+    region_names attribute does not exist in the regions dataset.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "load_regions": "zone",
+        "regions": regions,
+        "region_names": "zones",
+    }
+
+    with pytest.raises(
+        ValueError, match="region_names attribute .* does not exist in source"
+    ):
+        RegionalDownscaleConfig(**config)
 
 
 if __name__ == "__main__":
