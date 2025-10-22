@@ -156,7 +156,9 @@ class TotalDownscaleConfig(BaseDownscaleConfig):
 
         df = pd.read_csv(self.load_projections)
         if df[self.load_year].duplicated().any():
-            raise ValueError("Input load_projections dataset has duplicate years")
+            raise ValueError(
+                "Input load_projections dataset has duplicate entries for some years."
+            )
 
         return self
 
@@ -259,6 +261,35 @@ class RegionalDownscaleConfig(BaseDownscaleConfig):
             raise ValueError(
                 f"CRS of regions dataset {self.regions} ({crs}) does not match grid "
                 f"CRS ({self.grid_crs})."
+            )
+
+        return self
+
+    @model_validator(mode="after")
+    def validate_load_regions(self):
+        """
+        If load_regions is specified, check that the column exists in the
+        load_projections dataset.
+
+        Also check for duplicat entries over load_regions
+        and years.
+        """
+        if not self.load_regions:
+            return self
+
+        df = pd.read_csv(self.load_projections)
+
+        columns = df.columns.tolist()
+        if self.load_regions not in columns:
+            raise ValueError(
+                f"Specified attribute {self.load_regions} does not exist in the input "
+                f"load_projections dataset {self.load_projections}."
+            )
+
+        if df.duplicated(subset=[self.load_year, self.load_regions]).any():
+            raise ValueError(
+                "Input load_projections dataset has duplicate entries for some years "
+                "and regions."
             )
 
         return self
