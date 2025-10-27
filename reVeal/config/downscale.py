@@ -3,6 +3,7 @@
 config.downscale module
 """
 from typing import Optional
+from math import isclose
 
 from pydantic import (
     model_validator,
@@ -346,6 +347,23 @@ class RegionalDownscaleConfig(BaseDownscaleConfig):
                 f"column in {self.regions} and {source}. The following keys are not "
                 f"matched across the two sources: {differences}."
             )
+
+        return self
+
+    @model_validator(mode="after")
+    def validate_sum_region_weights(self):
+        """
+        Validate that the sum of all region weights is equal to 1.
+        """
+
+        if self.region_weights:
+            sum_weights = sum(self.region_weights.values())
+
+            if not isclose(sum_weights, 1, abs_tol=1e-10, rel_tol=1e-10):
+                raise ValueError(
+                    "Weights of input region_weights must sum to 1. "
+                    f"Sum of input weights is: {sum_weights}."
+                )
 
         return self
 

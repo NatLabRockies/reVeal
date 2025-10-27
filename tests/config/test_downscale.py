@@ -996,5 +996,41 @@ def test_downscaleconfig_valid_regional_region_weights(data_dir):
     assert isinstance(downscale_config, RegionalDownscaleConfig)
 
 
+def test_downscaleconfig_bad_region_weights_sum(data_dir):
+    """
+    Test that a ValueError is raised when DownscaleConfig is instantiated with weights
+    that do not sum to 1.
+    """
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+
+    bad_weights = {k: v * 10 for k, v in DEFAULT_REGION_WEIGHTS.items()}
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "regions": regions,
+        "region_names": "emm_zone",
+        "region_weights": bad_weights,
+    }
+    with pytest.raises(
+        ValueError, match="Weights of input region_weights must sum to 1"
+    ):
+        DownscaleConfig(**config)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])
