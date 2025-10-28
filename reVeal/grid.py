@@ -19,7 +19,7 @@ from reVeal.config.characterize import CharacterizeConfig
 from reVeal.config.normalize import NormalizeConfig, GRID_IDX
 from reVeal.config.score_weighted import ScoreWeightedConfig
 from reVeal.config.downscale import DownscaleConfig
-from reVeal import overlay, normalization
+from reVeal import overlay, normalization, load
 
 OVERLAY_METHODS = {
     k[5:]: v for k, v in getmembers(overlay, isfunction) if k.startswith("calc_")
@@ -522,4 +522,53 @@ class DownscaleGrid(RunnableGrid):
         gpd.GeoDataFrame
             A GeoDataFrame with downscaled load values attributes.
         """
-        raise NotImplementedError("run method is not implemented for DownscaleGrid")
+
+        load_df = pd.read_csv(self.config.load_projections)
+
+        if self.config.projection_resolution == "regional":
+            LOGGER.info("Assigning grid cells to regions")
+            regions_lkup_df = overlay.calc_area_weighted_majority(
+                self.df, self.config.regions, self.config.region_names
+            )
+            self.df = pd.concat([self.df, regions_lkup_df], axis=1)
+
+            if self.config.region_weights:
+                LOGGER.info("Apportioning load to regions based on weights")
+                regional_load_df = load.apportion_load_to_regions(
+                    load_df, self.config.region_weights
+                )
+            else:
+                regional_load_df = load_df
+
+            LOGGER.info("Downscaling load to grid")
+            downscaled_df = load.downscale_regional(
+                self.df,
+                self.config.grid_priority,
+                self.config.grid_baseline_load,
+                self.config.baseline_year,
+                self.config.region_names,
+                regional_load_df,
+                self.config.load_value,
+                self.config.load_year,
+                self.config.load_regions,
+            )
+
+        elif self.config.projection_resolution == "total":
+            LOGGER.info("Downscaling load to grid")
+            downscaled_df = load.downscale_total(
+                self.df,
+                self.config.grid_priority,
+                self.config.grid_baseline_load,
+                self.config.baseline_year,
+                load_df,
+                self.config.load_value,
+                self.config.load_year,
+            )
+
+        else:
+            raise ValueError(
+                "Unexpected value for self.config.projection_resolution: "
+                f"{self.config.projection_resolution}."
+            )
+
+        return downscaled_df

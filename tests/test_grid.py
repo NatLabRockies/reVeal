@@ -403,5 +403,33 @@ def test_run_scoreweightedgrid_overwrite_output(data_dir, score_wt_grid):
     ).all(), "Unexpected output values"
 
 
+def test_run_downscalegrid_total(downscale_total_grid):
+    """
+    Test the run() function of DownscaleGrid with total resolution load projections.
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        downscale_total_grid.run()
+
+
+def test_run_downscalegrid_regional(downscale_regional_grid):
+    """
+    Test the run() function of DownscaleGrid with regional resolution load projections.
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        downscale_regional_grid.run()
+
+
+def test_run_downscalegrid_region_weights(downscale_region_weights_grid):
+    """
+    Test the run() function of DownscaleGrid with total resolution load projections
+    and region weights.
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        downscale_region_weights_grid.run()
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])

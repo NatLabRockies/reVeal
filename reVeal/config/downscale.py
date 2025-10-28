@@ -69,6 +69,7 @@ class BaseDownscaleConfig(BaseGridConfig):
     load_projections: FilePath
     load_value: str
     load_year: str
+    max_workers: Optional[PositiveInt] = None
 
     @model_validator(mode="after")
     def validate_grid(self):

@@ -189,6 +189,10 @@ def run(
         region_weights=region_weights,
     )
 
+    if max_workers is not None:
+        if DownscaleConfig.max_workers is None:
+            DownscaleConfig.max_workers = max_workers
+
     LOGGER.info("Initializing DownscaleGrid from input config...")
     downscale_grid = DownscaleGrid(config)
     LOGGER.info("Initialization complete.")
