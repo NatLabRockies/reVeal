@@ -18,6 +18,7 @@ from reVeal.overlay import (
     calc_percent_covered,
     calc_area_weighted_average,
     calc_area_apportioned_sum,
+    calc_area_weighted_majority,
     zonal_statistic,
     calc_median,
     calc_mean,
@@ -292,6 +293,84 @@ def test_calc_area_weighted_average(
             else:
                 expected_results_src = (
                     data_dir / "overlays" / "area_weighted_average_results.gpkg"
+                )
+            expected_df = gpd.read_file(expected_results_src)
+
+            assert_geodataframe_equal(results_df, expected_df, check_like=True)
+
+
+@pytest.mark.parametrize(
+    "dset_path,attribute,where,exception_type,all_nans",
+    [
+        (
+            "downscale/inputs/regions/eer_adp_zones.gpkg",
+            "emm_zone",
+            None,
+            None,
+            False,
+        ),
+        (
+            "downscale/inputs/regions/eer_adp_zones.gpkg",
+            "emm_zone",
+            "emm_zone_id != 12",
+            None,
+            False,
+        ),
+        (
+            "downscale/inputs/regions/eer_adp_zones.gpkg",
+            "zone_name",
+            None,
+            KeyError,
+            False,
+        ),
+        (
+            "characterize/vectors/tlines.gpkg",
+            "OWNER",
+            None,
+            None,
+            True,
+        ),
+        (
+            "characterize/vectors/generators.gpkg",
+            "primary_fuel_type",
+            None,
+            None,
+            True,
+        ),
+    ],
+)
+def test_calc_area_weighted_majority(
+    data_dir, base_grid, dset_path, attribute, where, exception_type, all_nans
+):
+    """
+    Unit tests for calc_area_weighted_majority().
+    """
+
+    zones_df = base_grid.df
+    dset_src = data_dir / dset_path
+
+    if exception_type:
+        with pytest.raises(exception_type):
+            calc_area_weighted_majority(zones_df, dset_src, attribute, where=where)
+    else:
+        results = calc_area_weighted_majority(
+            zones_df, dset_src, attribute, where=where
+        )
+        if all_nans:
+            assert (
+                results[attribute].isna()
+            ).all(), "Results are not all NA as expected"
+        else:
+            results_df = pd.concat([zones_df, results], axis=1)
+            results_df.reset_index(inplace=True)
+
+            if where:
+                expected_results_src = (
+                    data_dir / "overlays" / "area_weighted_majority_filtered.gpkg"
+                )
+            else:
+                expected_results_src = (
+                    data_dir / "overlays" / "area_weighted_majority_results.gpkg"
                 )
             expected_df = gpd.read_file(expected_results_src)
 

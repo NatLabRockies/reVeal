@@ -182,7 +182,6 @@ def run(
         load_projections=load_projections,
         load_value=load_value,
         load_year=load_year,
-        projection_resolution=projection_resolution,
         regions=regions,
         region_names=region_names,
         out_dir=out_dir,
