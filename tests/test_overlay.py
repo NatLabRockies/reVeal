@@ -8,6 +8,7 @@ import pytest
 from geopandas.testing import assert_geodataframe_equal
 import pandas as pd
 import geopandas as gpd
+import numpy as np
 
 from reVeal.overlay import (
     calc_feature_count,
@@ -374,6 +375,9 @@ def test_calc_area_weighted_majority(
                 )
             expected_df = gpd.read_file(expected_results_src)
 
+            results_df[attribute] = np.where(
+                results_df[attribute].isna(), None, results_df[attribute]
+            )
             assert_geodataframe_equal(results_df, expected_df, check_like=True)
 
 
