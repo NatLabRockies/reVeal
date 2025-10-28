@@ -152,7 +152,8 @@ def run(
     region_weights : dict, optional
         Dictionary indicating weights to use for apportioning load to regions before
         disaggregating. Keys should match values in the ``region_names`` column of
-        the ``regions`` dataset.
+        the ``regions`` dataset. Values should indicate the proportion of aggregate
+        load to apportion to the corresponding region. Values must sum to 1.
 
         .. note::
             If ``projection_resolution == "regional"``, either this option or

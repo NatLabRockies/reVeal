@@ -535,7 +535,10 @@ class DownscaleGrid(RunnableGrid):
             if self.config.region_weights:
                 LOGGER.info("Apportioning load to regions based on weights")
                 regional_load_df = load.apportion_load_to_regions(
-                    load_df, self.config.region_weights
+                    load_df,
+                    self.config.load_value,
+                    self.config.load_year,
+                    self.config.region_weights,
                 )
             else:
                 regional_load_df = load_df
