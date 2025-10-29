@@ -107,26 +107,106 @@ def downscale_total(
     grid_priority_col,
     grid_baseline_load_col,
     baseline_year,
+    grid_capacity_col,
     load_df,
     load_value_col,
     load_year_col,
+    site_saturation_limit=1,
+    priority_power=1,
+    n_bootstraps=10_000,
+    random_seed=0,
     max_workers=None,
 ):
-    # TODO: expose these up the stack so it can be input through the config
-    # TODO: remove baseline year input from config - we aren't using it??
-    grid_capacity_col = "developable_capacity_mw"
-    site_saturation = 0.5
-    priority_power = 100
+    """
+    Downscale aggregate load projections to grid based on grid priority column.
+    Note that this method uses a random bootstrapping approach to achieve greater
+    dispersion of load across multiple grid cells, and the degree of dispersion can
+    be tuned manually using input parameters such as ``site_saturation_limit``,
+    ``priority_power``, and ``n_bootstraps``.
 
-    n_iters = 10_000
-    random_seed = 0
+    Parameters
+    ----------
+    grid_df : pandas.DataFrame
+        Pandas dataframe where each record represents a site to which load projections
+        may be downscaled
+    grid_priority_col : str
+        Name of column in ``grid_df`` to use for prioritizing sites for downscaling
+        load.
+    grid_baseline_load_col : str
+        Name of column in ``grid_df`` with numeric values indicating the baseline, or
+        initial, load in each site, corresponding to the ``baseline_year``.
+    baseline_year : int
+        Year corresponding to the baseline load values in ``grid_baseline_load_col``.
+    grid_capacity_col : str
+        Name of column in ``grid_df`` indicating the developable capacity of
+        load within each site. Note that this value can modified using the
+        ``site_saturation_limit`` parameter.
+    load_df : pandas.DataFrame
+        Dataframe containing aggregate load projections for the area encompassing the
+        input ``grid_df`` sites.
+    load_value_col : str
+        Name of column in ``load_df`` containing projections of load.
+    load_year_col : str
+        Name of column in ``load_df`` containing year values corresponding to load
+        projections.
+    site_saturation_limit : float, optional
+        Adjustment factor limit the developable capacity of load within each site.
+        This value is used to scale the values in the ``grid_capacity_col``. For
+        example, to limit the maximum deployed load in each site to half of the
+        actual developable load, use ``site_saturation_limit=0.5``. The lower this
+        value is set, the greater the degree of dispersion of load  across sites will
+        be. The dfault is 1, which leaves the values in the ``grid_capacity_col``
+        unmodified.
+    priority_power : int, optional
+        This factor can be used to exaggerate the influence of the values in
+        ``grid_priority_col``, such that higher values have an increased likelihood of
+        load deployment and lower values have a decreased likelihood. This effect is
+        implemented by raising the values in ``grid_priority_col`` to the specified
+        ``priority_power``. As a result, if the input  values in ``grid_priority_col``
+        are < 1, setting ``priority_power`` to high values can result in completely
+        eliminating lower priority sites from consideration. The default value is 1,
+        which leaves the values in ``grid_priority_col`` unmodified. To achieve
+        less dispersion and greater clustering of downscaled load in higher priority
+        sites, increase this value.
+    n_bootstraps : int, optional
+        Number of bootstraps to simulate in each projection year. Default is 10,000.
+        In general, larger values will produce more stable results, with less chance
+        for lower priority sites to receive large amounts of deployed load. However,
+        larger values will also cause longer run times.
+    random_seed : int, optional
+        Random seed to use for reproducible bootstrapping. Default is 0. In general,
+        this value does not need to be modified. The exception is if you are interested
+        in testing sensitivities and/or producing multiple realizations or scenarios of
+        deployment for a given set of values in ``load_priority_col``.
+    max_workers : int, optional
+        Number of workers to use for bootstrapping. By default None, which uses all
+        available workers. In general, this value should only be changed if you are
+        running into out-of-memory errors.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Returns DataFrame consisting of load projections downscaled to the grid.
+        This dataframe will contain all of the columns from the input ``grid_df``,
+        as well as three new columns, including ``year`` (indicating the year
+        of the projection) and a "new_" and "total_" load column, named with a suffix
+        corresponding to the ``load_value_col``.
+
+    Raises
+    ------
+    ValueError
+        A ValueError will be raised if internal consistency checks for downscaled
+        results do not pass.
+    """
 
     grid_df["_weight"] = grid_df[grid_priority_col] ** priority_power
     grid_df[f"total_{load_value_col}"] = grid_df[grid_baseline_load_col].astype(float)
     grid_df[f"new_{load_value_col}"] = float(0.0)
     # note: don't decrement off existing load because developable capacity
     # should already account for exclusions from existing buildings
-    grid_df["_developable_capacity"] = grid_df[grid_capacity_col] * site_saturation
+    grid_df["_developable_capacity"] = (
+        grid_df[grid_capacity_col] * site_saturation_limit
+    )
     grid_idx = grid_df.index.name
     if grid_idx is None:
         grid_idx = "index"
@@ -145,13 +225,14 @@ def downscale_total(
             load_projected_in_year = year_df[load_value_col].iloc[0]
 
             simulations = []
-            # TODO: remove tqdm
             futures = {}
             grid_year_sub_df = grid_year_df[grid_year_df["_weight"] > 0][
                 [grid_idx, "_developable_capacity", "_weight"]
             ]
-            with tqdm.tqdm(total=n_iters) as pbar:
-                for _ in range(0, n_iters):
+            with tqdm.tqdm(
+                total=n_bootstraps, desc=f"Running bootstraps for year {year}"
+            ) as pbar:
+                for i in range(0, n_bootstraps):
                     future = pool.submit(
                         simulate_deployment,
                         load_projected_in_year=load_projected_in_year,
@@ -160,11 +241,11 @@ def downscale_total(
                         grid_weights="_weight",
                         random_seed=random_seed,
                     )
-                    futures[future] = random_seed
+                    futures[future] = i
                     random_seed += 1
 
                 for future in as_completed(futures):
-                    random_seed = futures[future]
+                    i = futures[future]
                     deployed_df = future.result()
                     simulations.append(deployed_df)
                     pbar.update(1)
@@ -198,6 +279,7 @@ def downscale_total(
 
     grid_projections_df = pd.concat(grid_years, ignore_index=True)
     grid_projections_df.set_index([grid_idx, "year"], inplace=True)
+    grid_projections_df.drop(columns=["_developable_capacity"], inplace=True)
 
     return grid_projections_df
 

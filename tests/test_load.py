@@ -81,15 +81,21 @@ def test_downscale_total(data_dir):
         grid_priority_col="suitability_score",
         grid_baseline_load_col="dc_capacity_mw_existing",
         baseline_year=2022,
+        grid_capacity_col="developable_capacity_mw",
+        site_saturation_limit=0.5,
+        priority_power=100,
         load_df=load_df,
         load_value_col="dc_load_mw",
         load_year_col="year",
+        n_bootstraps=500,
+        random_seed=0,
     )
+    results_df.reset_index(inplace=True)
 
     expected_src = data_dir / "load" / "grid_downscaled_total.gpkg"
     expected_df = gpd.read_file(expected_src)
 
-    assert_geodataframe_equal(results_df, expected_df)
+    assert_geodataframe_equal(results_df, expected_df, check_like=True)
 
 
 def test_downscale_regional(data_dir):
@@ -126,10 +132,10 @@ def test_downscale_regional(data_dir):
         load_region_col="zone",
     )
 
-    # expected_src = data_dir / "load" / "grid_downscaled_regional.gpkg"
-    # expected_df = gpd.read_file(expected_src)
+    expected_src = data_dir / "load" / "grid_downscaled_regional.gpkg"
+    expected_df = gpd.read_file(expected_src)
 
-    # assert_geodataframe_equal(results_df, expected_df)
+    assert_geodataframe_equal(results_df, expected_df)
 
 
 if __name__ == "__main__":
