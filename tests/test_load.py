@@ -109,7 +109,7 @@ def test_downscale_regional(data_dir):
         / "downscale"
         / "inputs"
         / "load_growth_projections"
-        / "eer_us-adp-2024-central_regional.csv"
+        / "eer_us-adp-2024-central_region_groups.csv"
     )
     grid_src = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
     regions_src = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
@@ -117,7 +117,7 @@ def test_downscale_regional(data_dir):
     grid_df = gpd.read_file(grid_src)
 
     grid_df.set_index("gid", inplace=True)
-    regions_lkup_df = calc_area_weighted_majority(grid_df, regions_src, "emm_zone")
+    regions_lkup_df = calc_area_weighted_majority(grid_df, regions_src, "zone_group")
     grid_w_regions_df = pd.concat([grid_df, regions_lkup_df], axis=1)
 
     results_df = downscale_regional(
@@ -126,11 +126,11 @@ def test_downscale_regional(data_dir):
         grid_baseline_load_col="dc_capacity_mw_existing",
         baseline_year=2022,
         grid_capacity_col="developable_capacity_mw",
-        grid_region_col="emm_zone",
+        grid_region_col="zone_group",
         load_df=load_df,
         load_value_col="dc_load_mw",
         load_year_col="year",
-        load_region_col="zone",
+        load_region_col="zone_group",
         site_saturation_limit=0.5,
         priority_power=100,
         n_bootstraps=100,
