@@ -2,12 +2,16 @@
 """
 load module
 """
+import logging
 from math import isclose
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 import numpy as np
 import pandas as pd
 import tqdm
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def apportion_load_to_regions(load_df, load_value_col, load_year_col, region_weights):
@@ -323,14 +327,145 @@ def downscale_regional(
     grid_priority_col,
     grid_baseline_load_col,
     baseline_year,
+    grid_capacity_col,
     grid_region_col,
     load_df,
     load_value_col,
     load_year_col,
     load_region_col,
+    site_saturation_limit=1,
+    priority_power=1,
+    n_bootstraps=10_000,
+    random_seed=0,
+    max_workers=None,
 ):
-    # TODO: drop grids with unknown regions
-    # TODO: check for validity/consistency of regions across datasets
-    # TODO: rename columns for consistency across the input datasets
+    """
+    Downscale regional load projections to grid based on grid priority column.
+    This method works by wrapping downscale_total() over multiple regions.
 
-    return grid_df
+    Parameters
+    ----------
+    grid_df : pandas.DataFrame
+        Pandas dataframe where each record represents a site to which load projections
+        may be downscaled
+    grid_priority_col : str
+        Name of column in ``grid_df`` to use for prioritizing sites for downscaling
+        load.
+    grid_baseline_load_col : str
+        Name of column in ``grid_df`` with numeric values indicating the baseline, or
+        initial, load in each site, corresponding to the ``baseline_year``.
+    baseline_year : int
+        Year corresponding to the baseline load values in ``grid_baseline_load_col``.
+    grid_capacity_col : str
+        Name of column in ``grid_df`` indicating the developable capacity of
+        load within each site. Note that this value can modified using the
+        ``site_saturation_limit`` parameter.
+    grid_region_col : str
+        Name of column in ``grid_df`` indicating the region of each site. Values
+        should match those in the ``load_df`` ``load_region_col`` column (although
+        they do not need to be the same type case).
+    load_df : pandas.DataFrame
+        Dataframe containing aggregate load projections for the area encompassing the
+        input ``grid_df`` sites.
+    load_value_col : str
+        Name of column in ``load_df`` containing projections of load.
+    load_year_col : str
+        Name of column in ``load_df`` containing year values corresponding to load
+        projections.
+    load_region_col : str
+        Name of column in ``load_df`` indicating the region of each projected value.
+        Values should match those in the ``grid_df`` ``grid_region_col`` column
+        (although they do not need to be the same type case).
+    site_saturation_limit : float, optional
+        Adjustment factor limit the developable capacity of load within each site.
+        This value is used to scale the values in the ``grid_capacity_col``. For
+        example, to limit the maximum deployed load in each site to half of the
+        actual developable load, use ``site_saturation_limit=0.5``. The lower this
+        value is set, the greater the degree of dispersion of load  across sites will
+        be. The dfault is 1, which leaves the values in the ``grid_capacity_col``
+        unmodified.
+    priority_power : int, optional
+        This factor can be used to exaggerate the influence of the values in
+        ``grid_priority_col``, such that higher values have an increased likelihood of
+        load deployment and lower values have a decreased likelihood. This effect is
+        implemented by raising the values in ``grid_priority_col`` to the specified
+        ``priority_power``. As a result, if the input  values in ``grid_priority_col``
+        are < 1, setting ``priority_power`` to high values can result in completely
+        eliminating lower priority sites from consideration. The default value is 1,
+        which leaves the values in ``grid_priority_col`` unmodified. To achieve
+        less dispersion and greater clustering of downscaled load in higher priority
+        sites, increase this value.
+    n_bootstraps : int, optional
+        Number of bootstraps to simulate in each projection year. Default is 10,000.
+        In general, larger values will produce more stable results, with less chance
+        for lower priority sites to receive large amounts of deployed load. However,
+        larger values will also cause longer run times.
+    random_seed : int, optional
+        Random seed to use for reproducible bootstrapping. Default is 0. In general,
+        this value does not need to be modified. The exception is if you are interested
+        in testing sensitivities and/or producing multiple realizations or scenarios of
+        deployment for a given set of values in ``load_priority_col``.
+    max_workers : int, optional
+        Number of workers to use for bootstrapping. By default None, which uses all
+        available workers. In general, this value should only be changed if you are
+        running into out-of-memory errors.
+
+
+    Returns
+    -------
+    pandas.DataFrame
+        Returns DataFrame consisting of load projections downscaled to the grid.
+        This dataframe will contain all of the columns from the input ``grid_df``,
+        as well as three new columns, including ``year`` (indicating the year
+        of the projection) and a "new_" and "total_" load column, named with a suffix
+        corresponding to the ``load_value_col``.
+
+    Raises
+    ------
+    ValueError
+        A ValueError will be raised if internal consistency checks for downscaled
+        results do not pass or if the region names do not match between ``grid_df`` and
+        ``load_df``.
+    """
+
+    grid_idx = grid_df.index.name
+    if grid_idx is None:
+        grid_idx = "index"
+
+    grid_df["_region"] = grid_df[grid_region_col].str.lower()
+    load_df["_region"] = load_df[load_region_col].str.lower()
+
+    grid_regions = grid_df["_region"][~grid_df["_region"].isna()].unique().tolist()
+    load_regions = load_df["_region"].unique().tolist()
+    differences = list(set(grid_regions).symmetric_difference(set(load_regions)))
+    if len(differences) > 0:
+        raise ValueError("Region names do not match between grid_df and load_df.")
+
+    region_results = []
+    for region in load_regions:
+        LOGGER.info(f"Downscaling load projections for region {region}")
+        grid_region_df = grid_df[grid_df["_region"] == region].copy()
+        load_region_df = load_df[load_df["_region"] == region].copy()
+        region_downscaled_df = downscale_total(
+            grid_df=grid_region_df,
+            grid_priority_col=grid_priority_col,
+            grid_baseline_load_col=grid_baseline_load_col,
+            baseline_year=baseline_year,
+            grid_capacity_col=grid_capacity_col,
+            load_df=load_region_df,
+            load_value_col=load_value_col,
+            load_year_col=load_year_col,
+            site_saturation_limit=site_saturation_limit,
+            priority_power=priority_power,
+            n_bootstraps=n_bootstraps,
+            random_seed=random_seed,
+            max_workers=max_workers,
+        )
+        region_downscaled_df.drop(columns=["_region"], inplace=True)
+        region_downscaled_df.reset_index(inplace=True)
+        region_results.append(region_downscaled_df)
+
+    grid_projections_df = pd.concat(region_results, ignore_index=True)
+    grid_projections_df.set_index([grid_idx, "year"], inplace=True)
+
+    return grid_projections_df
