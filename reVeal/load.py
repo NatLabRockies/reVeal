@@ -65,9 +65,42 @@ def apportion_load_to_regions(load_df, load_value_col, load_year_col, region_wei
     return region_loads_df
 
 
-def simulate_deployment(
+def _simulate_deployment(
     load_projected_in_year, grid_year_df, grid_idx, grid_weights, random_seed
 ):
+    """
+    Helper function for downscale_total() that simulates deployment of load
+    to the grid of sites. Randomly shuffled sites, with weights, and downscales
+    the total projected load to sites based on the shuffled order.
+
+    Parameters
+    ----------
+    load_projected_in_year : float
+        Total projected load to downscale.
+    grid_year_df : pandas.DataFrame
+        Grid of sites to which load will be downscaled. In addition to ``grid_idx`` and
+        ``grid_weights`` columns, must also have a column named
+        ``_developable_capacity``.
+    grid_idx : str
+        Name of column in ``grid_year_df`` corresponding to the index.
+    grid_weights : str
+        Name of column in ``grid_year_df`` to use for weighting random shuffle.
+    random_seed : int
+        Random seed to use for the random shuffle.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Returns a simplified DataFrame of the downscaled results with two columns:
+        an index column named based on ``grid_idx``, and a ``_new_capacity`` column
+        indicating the downscaled capacity.
+
+    Raises
+    ------
+    ValueError
+        A ValueError will be raised if, during consistency checks, the downscaled
+        capacity does not sum to the specified ``load_projected_in_year``
+    """
     shuffle_df = grid_year_df.sample(
         frac=1,
         replace=False,
@@ -234,7 +267,7 @@ def downscale_total(
             ) as pbar:
                 for i in range(0, n_bootstraps):
                     future = pool.submit(
-                        simulate_deployment,
+                        _simulate_deployment,
                         load_projected_in_year=load_projected_in_year,
                         grid_year_df=grid_year_sub_df,
                         grid_idx=grid_idx,
