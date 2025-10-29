@@ -250,8 +250,9 @@ def downscale_total(
 
     load_df.sort_values(by=[load_year_col], ascending=True, inplace=True)
     with ProcessPoolExecutor(max_workers=max_workers) as pool:
-        for year, year_df in load_df.groupby(by=[load_year_col]):
-            grid_year_df["year"] = year[0]
+        for group_id, year_df in load_df.groupby(by=[load_year_col]):
+            year = group_id[0]
+            grid_year_df["year"] = year
 
             if len(year_df) > 1:
                 raise ValueError(f"Multiple records for load projections year {year}")
@@ -312,7 +313,7 @@ def downscale_total(
 
     grid_projections_df = pd.concat(grid_years, ignore_index=True)
     grid_projections_df.set_index([grid_idx, "year"], inplace=True)
-    grid_projections_df.drop(columns=["_developable_capacity"], inplace=True)
+    grid_projections_df.drop(columns=["_developable_capacity", "_weight"], inplace=True)
 
     return grid_projections_df
 
