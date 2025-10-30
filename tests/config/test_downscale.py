@@ -2,6 +2,7 @@
 """
 config.characdownscale module tests
 """
+# pylint: disable=too-many-lines
 from csv import QUOTE_NONNUMERIC
 
 import pytest
@@ -72,6 +73,50 @@ def test_basedownscaleconfig_valid_inputs(
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": baseline_year,
+        "load_projections": load_projections,
+        "projection_resolution": projection_resolution,
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "max_site_addition_per_year": 1000,
+        "site_saturation_limit": 0.5,
+        "priority_power": 3,
+        "n_bootsraps": 100,
+        "random_seed": 1,
+    }
+
+    BaseDownscaleConfig(**config)
+
+
+@pytest.mark.parametrize(
+    "baseline_year",
+    [2020, 2023],
+)
+@pytest.mark.parametrize(
+    "projection_resolution", ["regional", "total", "REGIONAL", "TOTAL"]
+)
+def test_basedownscaleconfig_valid_inputs_required_only(
+    data_dir, baseline_year, projection_resolution
+):
+    """
+    Test that BaseDownsaleConfig can be instantiated with valid inputs
+    for only the required parameters (skipping the optional parameters)
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": baseline_year,
         "load_projections": load_projections,
         "projection_resolution": projection_resolution,
@@ -87,6 +132,7 @@ def test_basedownscaleconfig_valid_inputs(
     [
         {"grid_priority": "best_site_score"},
         {"grid_baseline_load": "existing_mw"},
+        {"grid_capacity": "cap_mw"},
         {"load_value": "dc_load_gw"},
         {"load_year": "yr"},
     ],
@@ -109,6 +155,7 @@ def test_basedownscaleconfig_missing_attribute(data_dir, update_parameters):
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "total",
@@ -121,7 +168,10 @@ def test_basedownscaleconfig_missing_attribute(data_dir, update_parameters):
         BaseDownscaleConfig(**config)
 
 
-@pytest.mark.parametrize("test_col", ["suitability_score", "dc_capacity_mw_existing"])
+@pytest.mark.parametrize(
+    "test_col",
+    ["suitability_score", "dc_capacity_mw_existing", "developable_capacity_mw"],
+)
 def test_basedownscaleconfig_grid_nonnumeric_attribute(data_dir, tmp_path, test_col):
     """
     Test that BaseDownscaleConfig raises a ValueError when a non-numeric column is
@@ -145,6 +195,7 @@ def test_basedownscaleconfig_grid_nonnumeric_attribute(data_dir, tmp_path, test_
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "total",
@@ -175,6 +226,7 @@ def test_basedownscaleconfig_load_projections_fileformaterror(data_dir, tmp_path
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "total",
@@ -208,6 +260,7 @@ def test_basedownscaleconfig_load_projections_csvreaderror(data_dir, tmp_path):
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "total",
@@ -246,6 +299,7 @@ def test_basedownscaleconfig_load_projections_nonnumeric_attribute(
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "total",
@@ -277,6 +331,7 @@ def test_basedownscaleconfig_load_projections_predates_baseline_error(data_dir):
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2030,
         "load_projections": load_projections,
         "projection_resolution": "total",
@@ -312,6 +367,7 @@ def test_totaldownscaleconfig_valid_inputs(
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": baseline_year,
         "load_projections": load_projections,
         "projection_resolution": projection_resolution,
@@ -340,6 +396,7 @@ def test_totaldownscaleconfig_resolution_error(data_dir):
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "regional",
@@ -375,6 +432,7 @@ def test_totaldownscaleconfig_load_projections_duplicate_years(data_dir, tmp_pat
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "total",
@@ -417,6 +475,7 @@ def test_regionaldownscaleconfig_valid_inputs_load_regions(
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": baseline_year,
         "load_projections": load_projections,
         "projection_resolution": projection_resolution,
@@ -462,6 +521,7 @@ def test_regionaldownscaleconfig_valid_inputs_region_weights(
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": baseline_year,
         "load_projections": load_projections,
         "projection_resolution": projection_resolution,
@@ -497,6 +557,7 @@ def test_regionaldownscaleconfig_resolution_error(data_dir):
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "total",
@@ -535,6 +596,7 @@ def test_regionaldownscaleconfig_geom_type_error(data_dir, tmp_path):
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "regional",
@@ -575,6 +637,7 @@ def test_regionaldownscaleconfig_crs_error(data_dir, tmp_path):
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "regional",
@@ -611,6 +674,7 @@ def test_regionaldownscaleconfig_region_names_error(data_dir):
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "regional",
@@ -647,6 +711,7 @@ def test_regionaldownscaleconfig_neither_load_regions_nor_region_weights(data_di
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "regional",
@@ -681,6 +746,7 @@ def test_regionaldownscaleconfig_both_load_regions_and_region_weights(data_dir):
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "regional",
@@ -717,6 +783,7 @@ def test_regionaldownscaleconfig_missing_load_regions(data_dir):
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "regional",
@@ -759,6 +826,7 @@ def test_regionaldownscaleconfig_duplicate_region_years(data_dir, tmp_path):
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "regional",
@@ -802,6 +870,7 @@ def test_regionaldownscaleconfig_region_inconsistency_projections(data_dir, tmp_
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "regional",
@@ -846,6 +915,7 @@ def test_regionaldownscaleconfig_region_inconsistency_weights(data_dir):
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "regional",
@@ -884,6 +954,7 @@ def test_regionaldownscaleconfig_duplicate_years(data_dir):
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "regional",
@@ -918,6 +989,7 @@ def test_downscaleconfig_valid_total(data_dir):
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "total",
@@ -950,6 +1022,7 @@ def test_downscaleconfig_valid_regional_load_regions(data_dir):
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "regional",
@@ -983,6 +1056,7 @@ def test_downscaleconfig_valid_regional_region_weights(data_dir):
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "regional",
@@ -1017,6 +1091,7 @@ def test_downscaleconfig_bad_region_weights_sum(data_dir):
         "grid": grid,
         "grid_priority": "suitability_score",
         "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
         "baseline_year": 2022,
         "load_projections": load_projections,
         "projection_resolution": "regional",

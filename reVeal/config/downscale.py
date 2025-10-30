@@ -2,14 +2,10 @@
 """
 config.downscale module
 """
-from typing import Optional
+from typing import Optional, Annotated
 from math import isclose
 
-from pydantic import (
-    model_validator,
-    PositiveInt,
-    FilePath,
-)
+from pydantic import model_validator, PositiveInt, FilePath, Field
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
 from pyogrio._ogr import _get_drivers_for_path
@@ -64,11 +60,22 @@ class BaseDownscaleConfig(BaseGridConfig):
     # Input at instantiation
     grid_priority: str
     grid_baseline_load: str
+    grid_capacity: str
     baseline_year: PositiveInt
     projection_resolution: ProjectionResolutionEnum
     load_projections: FilePath
     load_value: str
     load_year: str
+    max_site_addition_per_year: Annotated[
+        Optional[float],
+        Field(strict=False, gt=0.0, default=None, validate_default=False),
+    ]
+    site_saturation_limit: Annotated[
+        Optional[float], Field(strict=False, gt=0.0, le=1.0, default=1.0)
+    ]
+    priority_power: Annotated[Optional[float], Field(strict=False, gt=0.0, default=1.0)]
+    n_bootsraps: Optional[PositiveInt] = 10_000
+    random_seed: Optional[int] = 0
     max_workers: Optional[PositiveInt] = None
 
     @model_validator(mode="after")
@@ -82,7 +89,7 @@ class BaseDownscaleConfig(BaseGridConfig):
         else:
             dset_attributes = get_attributes_pyogrio(self.grid)
 
-        check_cols = [self.grid_priority, self.grid_baseline_load]
+        check_cols = [self.grid_priority, self.grid_baseline_load, self.grid_capacity]
 
         for check_col in check_cols:
             dtype = dset_attributes.get(check_col)
