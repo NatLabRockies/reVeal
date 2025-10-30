@@ -546,27 +546,39 @@ class DownscaleGrid(RunnableGrid):
 
             LOGGER.info("Downscaling load to grid")
             downscaled_df = load.downscale_regional(
-                self.df,
-                self.config.grid_priority,
-                self.config.grid_baseline_load,
-                self.config.baseline_year,
-                self.config.region_names,
-                regional_load_df,
-                self.config.load_value,
-                self.config.load_year,
-                self.config.load_regions,
+                grid_df=self.df,
+                grid_priority_col=self.config.grid_priority,
+                grid_baseline_load_col=self.config.grid_baseline_load,
+                baseline_year=self.config.baseline_year,
+                grid_capacity_col=self.config.grid_capacity,
+                grid_region_col=self.config.region_names,
+                load_df=regional_load_df,
+                load_value_col=self.config.load_value,
+                load_year_col=self.config.load_year,
+                load_region_col=self.config.load_regions,
+                max_site_addition_per_year=self.config.max_site_addition_per_year,
+                site_saturation_limit=self.config.site_saturation_limit,
+                priority_power=self.config.priority_power,
+                n_bootstraps=self.config.n_bootstraps,
+                random_seed=self.config.random_seed,
             )
 
         elif self.config.projection_resolution == "total":
             LOGGER.info("Downscaling load to grid")
             downscaled_df = load.downscale_total(
-                self.df,
-                self.config.grid_priority,
-                self.config.grid_baseline_load,
-                self.config.baseline_year,
-                load_df,
-                self.config.load_value,
-                self.config.load_year,
+                grid_df=self.df,
+                grid_priority_col=self.config.grid_priority,
+                grid_baseline_load_col=self.config.grid_baseline_load,
+                baseline_year=self.config.baseline_year,
+                grid_capacity_col=self.config.grid_capacity,
+                load_df=load_df,
+                load_value_col=self.config.load_value,
+                load_year_col=self.config.load_year,
+                max_site_addition_per_year=self.config.max_site_addition_per_year,
+                site_saturation_limit=self.config.site_saturation_limit,
+                priority_power=self.config.priority_power,
+                n_bootstraps=self.config.n_bootstraps,
+                random_seed=self.config.random_seed,
             )
 
         else:

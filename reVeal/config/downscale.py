@@ -74,7 +74,7 @@ class BaseDownscaleConfig(BaseGridConfig):
         Optional[float], Field(strict=False, gt=0.0, le=1.0, default=1.0)
     ]
     priority_power: Annotated[Optional[float], Field(strict=False, gt=0.0, default=1.0)]
-    n_bootsraps: Optional[PositiveInt] = 10_000
+    n_bootstraps: Optional[PositiveInt] = 10_000
     random_seed: Optional[int] = 0
     max_workers: Optional[PositiveInt] = None
 

@@ -82,7 +82,7 @@ def test_basedownscaleconfig_valid_inputs(
         "max_site_addition_per_year": 1000,
         "site_saturation_limit": 0.5,
         "priority_power": 3,
-        "n_bootsraps": 100,
+        "n_bootstraps": 100,
         "random_seed": 1,
     }
 
@@ -136,8 +136,8 @@ def test_basedownscaleconfig_valid_inputs_required_only(
         {"site_saturation_limit": -1},
         {"priority_power": 0},
         {"priority_power": -1},
-        {"n_bootsraps": 0},
-        {"n_bootsraps": -1},
+        {"n_bootstraps": 0},
+        {"n_bootstraps": -1},
         {"random_seed": "one"},
     ],
 )
@@ -168,7 +168,7 @@ def test_basedownscaleconfig_bad_optional_inputs(data_dir, update_parameters):
         "max_site_addition_per_year": 1000,
         "site_saturation_limit": 0.5,
         "priority_power": 3,
-        "n_bootsraps": 100,
+        "n_bootstraps": 100,
         "random_seed": 1,
     }
     config.update(update_parameters)
