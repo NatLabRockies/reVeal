@@ -10,6 +10,7 @@ import geopandas as gpd
 from geopandas.testing import assert_geodataframe_equal
 import pandas as pd
 from pandas.testing import assert_frame_equal
+import numpy as np
 
 from reVeal.grid import (
     BaseGrid,
@@ -427,6 +428,11 @@ def test_run_downscalegrid_regional(data_dir, downscale_regional_grid):
         warnings.simplefilter("ignore")
         results_df = downscale_regional_grid.run()
 
+    # replace nans with nones to avoid future warnings when we compare to expected_df
+    results_df["zone_group"] = np.where(
+        results_df["zone_group"].isna(), None, results_df["zone_group"]
+    )
+
     expected_src = (
         data_dir / "downscale" / "outputs" / "grid_downscaled_regional_year_cap.gpkg"
     )
@@ -443,6 +449,10 @@ def test_run_downscalegrid_region_weights(data_dir, downscale_region_weights_gri
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         results_df = downscale_region_weights_grid.run()
+
+    results_df["zone_group"] = np.where(
+        results_df["zone_group"].isna(), None, results_df["zone_group"]
+    )
 
     expected_src = (
         data_dir

@@ -7,6 +7,7 @@ import pandas as pd
 from pandas.testing import assert_frame_equal
 import geopandas as gpd
 from geopandas.testing import assert_geodataframe_equal
+import numpy as np
 
 from reVeal.overlay import calc_area_weighted_majority
 from reVeal.load import apportion_load_to_regions, downscale_total, downscale_regional
@@ -92,7 +93,6 @@ def test_downscale_total(data_dir, max_site_addition_per_year):
         n_bootstraps=500,
         random_seed=0,
     )
-    results_df.reset_index(inplace=True)
 
     if max_site_addition_per_year:
         expected_src = (
@@ -145,7 +145,11 @@ def test_downscale_regional(data_dir, max_site_addition_per_year):
         n_bootstraps=100,
         random_seed=0,
     )
-    results_df.reset_index(inplace=True)
+
+    # replace nans with nones to avoid future warnings when we compare to expected_df
+    results_df["zone_group"] = np.where(
+        results_df["zone_group"].isna(), None, results_df["zone_group"]
+    )
 
     if max_site_addition_per_year:
         expected_src = (

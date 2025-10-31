@@ -256,7 +256,10 @@ def downscale_total(
     )
     grid_idx = grid_df.index.name
     if grid_idx is None:
+        named_index = False
         grid_idx = "index"
+    else:
+        named_index = True
 
     grid_year_df = grid_df.reset_index()
     grid_year_df["year"] = baseline_year
@@ -351,9 +354,10 @@ def downscale_total(
             prior_year = year
 
     grid_projections_df = pd.concat(grid_years, ignore_index=True)
-    grid_projections_df.set_index([grid_idx, "year"], inplace=True)
 
     drop_cols = ["_developable_capacity", "_developable_capacity_inc", "_weight"]
+    if not named_index:
+        drop_cols.append(grid_idx)
     grid_projections_df.drop(columns=drop_cols, inplace=True)
 
     return grid_projections_df
@@ -467,6 +471,9 @@ def downscale_regional(
         of the projection) and a "new_" and "total_" load column, named with a suffix
         corresponding to the ``load_value_col``.
 
+        .. note::
+            If sites in the grid that do not intersect the ``
+
     Raises
     ------
     ValueError
@@ -477,7 +484,10 @@ def downscale_regional(
 
     grid_idx = grid_df.index.name
     if grid_idx is None:
+        named_index = False
         grid_idx = "index"
+    else:
+        named_index = True
 
     grid_df["_region"] = grid_df[grid_region_col].str.lower()
     load_df["_region"] = load_df[load_region_col].str.lower()
@@ -510,10 +520,22 @@ def downscale_regional(
             max_workers=max_workers,
         )
         region_downscaled_df.drop(columns=["_region"], inplace=True)
-        region_downscaled_df.reset_index(inplace=True)
         region_results.append(region_downscaled_df)
 
+    # fill in results for grid cells with unknown (NA) region
+    na_region_df = grid_df[grid_df["_region"].isna()].reset_index()
+    if len(na_region_df) > 0:
+        na_region_df.drop(columns=["_region"], inplace=True)
+        na_region_df[f"total_{load_value_col}"] = 0.0
+        na_region_df[f"new_{load_value_col}"] = 0.0
+
+        years_df = pd.DataFrame({"year": load_df[load_year_col].unique()})
+        na_region_downscaled_df = pd.merge(na_region_df, years_df, how="cross")
+
+        region_results.append(na_region_downscaled_df)
+
     grid_projections_df = pd.concat(region_results, ignore_index=True)
-    grid_projections_df.set_index([grid_idx, "year"], inplace=True)
+    if not named_index:
+        grid_projections_df.drop(columns=grid_idx, inplace=True)
 
     return grid_projections_df
