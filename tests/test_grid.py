@@ -318,7 +318,7 @@ def test_run_normalizegrid_overwrite_output(data_dir, norm_grid):
         warnings.simplefilter("ignore")
         result_df = norm_grid.run()
 
-    expected_norm_src = data_dir / "normalize" / "outputs" / "grid_char_norm.gpkg"
+    expected_norm_src = data_dir / "normalize" / "outputs" / "grid_normalized.gpkg"
 
     expected_df = gpd.read_file(expected_norm_src)
     assert (
@@ -466,4 +466,4 @@ def test_run_downscalegrid_region_weights(data_dir, downscale_region_weights_gri
 
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-s"])
+    pytest.main([__file__, "-s", "-k", "test_run_downscalegrid_regional"])

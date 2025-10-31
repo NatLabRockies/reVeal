@@ -96,7 +96,7 @@ def score_wt_grid():
     with open(in_config_path, "r") as f:
         config_data = json.load(f)
     config_data["grid"] = (
-        TEST_DATA_DIR / "normalize" / "outputs" / "grid_char_norm.gpkg"
+        TEST_DATA_DIR / "normalize" / "outputs" / "grid_normalized.gpkg"
     ).as_posix()
 
     with warnings.catch_warnings():
@@ -152,7 +152,7 @@ def downscale_region_weights_grid():
     weights
     """
 
-    in_config_path = TEST_DATA_DIR / "downscale" / "config_regional_weights.json"
+    in_config_path = TEST_DATA_DIR / "downscale" / "config_region_weights.json"
     with open(in_config_path, "r") as f:
         config_data = json.load(f)
     config_data["grid"] = (TEST_DATA_DIR / config_data["grid"]).as_posix()

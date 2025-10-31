@@ -9,7 +9,11 @@ from pathlib import Path
 from pydantic import ValidationError
 from gaps.cli import as_click_command, CLICommandFromFunction
 
-from reVeal.config.downscale import DownscaleConfig
+from reVeal.config.downscale import (
+    DownscaleConfig,
+    TotalDownscaleConfig,
+    RegionalDownscaleConfig,
+)
 from reVeal.log import get_logger, remove_streamhandlers
 from reVeal.grid import DownscaleGrid
 
@@ -58,9 +62,10 @@ def _preprocessor(config, job_name, log_directory, verbose):
 
     LOGGER.info("Validating input configuration file")
     try:
-        downscale_config = {
-            k: config.get(k) for k in DownscaleConfig.model_fields.keys() if k in config
-        }
+        candidate_keys = list(TotalDownscaleConfig.model_fields.keys()) + list(
+            RegionalDownscaleConfig.model_fields.keys()
+        )
+        downscale_config = {k: config.get(k) for k in candidate_keys if k in config}
         DownscaleConfig(**downscale_config)
     except ValidationError as e:
         LOGGER.error(
@@ -251,7 +256,7 @@ def run(
     downscale_grid = DownscaleGrid(config)
     LOGGER.info("Initialization complete.")
 
-    LOGGER.info("Downscaling laod projections...")
+    LOGGER.info("Running downscaling...")
     out_grid_df = downscale_grid.run()
     LOGGER.info("Downscaling complete.")
 

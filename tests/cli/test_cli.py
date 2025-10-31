@@ -136,12 +136,12 @@ def test_normalize(
     )
     assert result.exit_code == 0, f"Command failed with error {result.exception}"
 
-    out_gpkg = tmp_path / "grid_char_norm.gpkg"
+    out_gpkg = tmp_path / "grid_normalized.gpkg"
     assert out_gpkg.exists(), "Output grid not created."
 
     out_df = gpd.read_file(out_gpkg)
 
-    expected_gpkg = data_dir / "normalize" / "outputs" / "grid_char_norm.gpkg"
+    expected_gpkg = data_dir / "normalize" / "outputs" / "grid_normalized.gpkg"
     expected_df = gpd.read_file(expected_gpkg)
 
     assert_geodataframe_equal(expected_df, out_df)
@@ -217,7 +217,7 @@ def test_score_weighted(
     with open(in_config_path, "r") as f:
         config_data = json.load(f)
     config_data["grid"] = (
-        data_dir / "normalize" / "outputs" / "grid_char_norm.gpkg"
+        data_dir / "normalize" / "outputs" / "grid_normalized.gpkg"
     ).as_posix()
 
     config_path = tmp_path / "config.json"
@@ -230,14 +230,12 @@ def test_score_weighted(
     )
     assert result.exit_code == 0, f"Command failed with error {result.exception}"
 
-    out_gpkg = tmp_path / "grid_char_weighted_scores.gpkg"
+    out_gpkg = tmp_path / "grid_scores.gpkg"
     assert out_gpkg.exists(), "Output grid not created."
 
     out_df = gpd.read_file(out_gpkg)
 
-    expected_gpkg = (
-        data_dir / "score_weighted" / "outputs" / "grid_char_weighted_scores.gpkg"
-    )
+    expected_gpkg = data_dir / "score_weighted" / "outputs" / "grid_scores.gpkg"
     expected_df = gpd.read_file(expected_gpkg)
 
     assert_geodataframe_equal(expected_df, out_df)
@@ -269,7 +267,7 @@ def test_score_weighted_invalid_config(
     with open(in_config_path, "r") as f:
         config_data = json.load(f)
     config_data["grid"] = (
-        data_dir / "normalize" / "outputs" / "grid_char_norm.gpkg"
+        data_dir / "normalize" / "outputs" / "grid_normalized.gpkg"
     ).as_posix()
     for attribute in config_data["attributes"]:
         attribute["weight"] = 0.1
@@ -296,6 +294,71 @@ def test_score_weighted_invalid_config(
         "  Value error, Weights of input attributes must sum to 1"
     )
     assert expected_contents in log, "Expected error message not found in log file"
+
+
+@pytest.mark.parametrize(
+    "config",
+    ["config_total.json", "config_regional.json", "config_region_weights.json"],
+)
+def test_downscale(
+    cli_runner,
+    tmp_path,
+    data_dir,
+    config,
+):
+    """
+    Happy path test for the downscale command. Tests that it produces the
+    expected outputs for known inputs.
+    """
+    in_config_path = data_dir / "downscale" / config
+    with open(in_config_path, "r") as f:
+        config_data = json.load(f)
+    config_data["grid"] = (data_dir / config_data["grid"]).as_posix()
+    config_data["load_projections"] = (
+        data_dir / config_data["load_projections"]
+    ).as_posix()
+    if "regions" in config_data:
+        config_data["regions"] = (data_dir / config_data["regions"]).as_posix()
+
+    config_path = tmp_path / "config.json"
+    with open(config_path, "w") as f:
+        json.dump(config_data, f)
+
+    result = cli_runner.invoke(
+        main,
+        ["downscale", "-c", config_path.as_posix()],
+    )
+    assert result.exit_code == 0, f"Command failed with error {result.exception}"
+
+    out_gpkg = tmp_path / "grid_load_projections.gpkg"
+    assert out_gpkg.exists(), "Output grid not created."
+
+    out_df = gpd.read_file(out_gpkg)
+
+    expected_gpkg_stub = config.replace("config_", "").replace(".json", "")
+    expected_gpkg = (
+        data_dir
+        / "downscale"
+        / "outputs"
+        / f"grid_downscaled_{expected_gpkg_stub}_year_cap.gpkg"
+    )
+    expected_df = gpd.read_file(expected_gpkg)
+
+    assert_geodataframe_equal(expected_df, out_df, check_like=True)
+
+    logs = list((tmp_path / "logs").glob("*_downscale.log"))
+    assert len(logs) > 0, "No logs were created"
+
+    log = logs[0]
+    with open(log, "r") as f:
+        log_content = f.read()
+
+    assert (
+        "UserWarning: gid column already exists in self.dataframe" in log_content
+    ), "Expected overwrite warning message was not found in log file."
+    assert (
+        "Running downscaling..." in log_content
+    ), "Expected progress messages were not found in log file."
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ from reVeal.config.config import load_config, BaseGridConfig
 from reVeal.config.characterize import CharacterizeConfig
 from reVeal.config.normalize import NormalizeConfig, GRID_IDX
 from reVeal.config.score_weighted import ScoreWeightedConfig
-from reVeal.config.downscale import DownscaleConfig
+from reVeal.config.downscale import BaseDownscaleConfig
 from reVeal import overlay, normalization, load
 
 OVERLAY_METHODS = {
@@ -511,7 +511,7 @@ class DownscaleGrid(RunnableGrid):
     Subclass of RunnableGrid for calculating weighted composite score.
     """
 
-    CONFIG_CLASS = DownscaleConfig
+    CONFIG_CLASS = BaseDownscaleConfig
 
     def run(self):
         """
@@ -544,7 +544,7 @@ class DownscaleGrid(RunnableGrid):
             else:
                 regional_load_df = load_df
 
-            LOGGER.info("Downscaling load to grid")
+            LOGGER.info("Downscaling load to grid.")
             downscaled_df = load.downscale_regional(
                 grid_df=self.df,
                 grid_priority_col=self.config.grid_priority,
@@ -561,10 +561,11 @@ class DownscaleGrid(RunnableGrid):
                 priority_power=self.config.priority_power,
                 n_bootstraps=self.config.n_bootstraps,
                 random_seed=self.config.random_seed,
+                hide_pbar=True,
             )
 
         elif self.config.projection_resolution == "total":
-            LOGGER.info("Downscaling load to grid")
+            LOGGER.info("Downscaling load to grid.")
             downscaled_df = load.downscale_total(
                 grid_df=self.df,
                 grid_priority_col=self.config.grid_priority,
@@ -579,6 +580,7 @@ class DownscaleGrid(RunnableGrid):
                 priority_power=self.config.priority_power,
                 n_bootstraps=self.config.n_bootstraps,
                 random_seed=self.config.random_seed,
+                hide_pbar=True,
             )
 
         else:

@@ -154,6 +154,7 @@ def downscale_total(
     n_bootstraps=10_000,
     random_seed=0,
     max_workers=None,
+    hide_pbar=False,
 ):
     """
     Downscale aggregate load projections to grid based on grid priority column.
@@ -228,6 +229,9 @@ def downscale_total(
         Number of workers to use for bootstrapping. By default None, which uses all
         available workers. In general, this value should only be changed if you are
         running into out-of-memory errors.
+    hide_pbar : bool, optional
+        If specified as True, hide the progress bar when running bootstraps. Default
+        is True, which will show the progress bar.
 
     Returns
     -------
@@ -292,7 +296,10 @@ def downscale_total(
                 [grid_idx, "_developable_capacity_inc", "_weight"]
             ]
             with tqdm.tqdm(
-                total=n_bootstraps, desc=f"Running bootstraps for year {year}"
+                total=n_bootstraps,
+                desc=f"Running bootstraps for year {year}",
+                ascii=True,
+                disable=hide_pbar,
             ) as pbar:
                 for i in range(0, n_bootstraps):
                     future = pool.submit(
@@ -379,6 +386,7 @@ def downscale_regional(
     n_bootstraps=10_000,
     random_seed=0,
     max_workers=None,
+    hide_pbar=False,
 ):
     """
     Downscale regional load projections to grid based on grid priority column.
@@ -459,7 +467,9 @@ def downscale_regional(
         Number of workers to use for bootstrapping. By default None, which uses all
         available workers. In general, this value should only be changed if you are
         running into out-of-memory errors.
-
+    hide_pbar : bool, optional
+        If specified as True, hide the progress bar when running bootstraps. Default
+        is True, which will show the progress bar.
 
     Returns
     -------
@@ -514,6 +524,7 @@ def downscale_regional(
             n_bootstraps=n_bootstraps,
             random_seed=random_seed,
             max_workers=max_workers,
+            hide_pbar=hide_pbar,
         )
         region_downscaled_df.drop(columns=["_region"], inplace=True)
         region_results.append(region_downscaled_df)
