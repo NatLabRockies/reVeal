@@ -10,6 +10,7 @@ import geopandas as gpd
 from geopandas.testing import assert_geodataframe_equal
 import pandas as pd
 from pandas.testing import assert_frame_equal
+import numpy as np
 
 from reVeal.grid import (
     BaseGrid,
@@ -317,7 +318,7 @@ def test_run_normalizegrid_overwrite_output(data_dir, norm_grid):
         warnings.simplefilter("ignore")
         result_df = norm_grid.run()
 
-    expected_norm_src = data_dir / "normalize" / "outputs" / "grid_char_norm.gpkg"
+    expected_norm_src = data_dir / "normalize" / "outputs" / "grid_normalized.gpkg"
 
     expected_df = gpd.read_file(expected_norm_src)
     assert (
@@ -403,5 +404,66 @@ def test_run_scoreweightedgrid_overwrite_output(data_dir, score_wt_grid):
     ).all(), "Unexpected output values"
 
 
+def test_run_totaldownscalegrid(data_dir, downscale_total_grid):
+    """
+    Test the run() function of DownscaleGrid with total resolution load projections.
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        results_df = downscale_total_grid.run()
+
+    expected_src = (
+        data_dir / "downscale" / "outputs" / "grid_downscaled_total_year_cap.gpkg"
+    )
+    expected_df = gpd.read_file(expected_src)
+
+    assert_geodataframe_equal(results_df, expected_df, check_like=True)
+
+
+def test_run_regionaldownscalegrid(data_dir, downscale_regional_grid):
+    """
+    Test the run() function of DownscaleGrid with regional resolution load projections.
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        results_df = downscale_regional_grid.run()
+
+    # replace nans with nones to avoid future warnings when we compare to expected_df
+    results_df["zone_group"] = np.where(
+        results_df["zone_group"].isna(), None, results_df["zone_group"]
+    )
+
+    expected_src = (
+        data_dir / "downscale" / "outputs" / "grid_downscaled_regional_year_cap.gpkg"
+    )
+    expected_df = gpd.read_file(expected_src)
+
+    assert_geodataframe_equal(results_df, expected_df, check_like=True)
+
+
+def test_run_regionaldownscalegrid_weights(data_dir, downscale_region_weights_grid):
+    """
+    Test the run() function of DownscaleGrid with total resolution load projections
+    and region weights.
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        results_df = downscale_region_weights_grid.run()
+
+    results_df["zone_group"] = np.where(
+        results_df["zone_group"].isna(), None, results_df["zone_group"]
+    )
+
+    expected_src = (
+        data_dir
+        / "downscale"
+        / "outputs"
+        / "grid_downscaled_region_weights_year_cap.gpkg"
+    )
+    expected_df = gpd.read_file(expected_src)
+
+    assert_geodataframe_equal(results_df, expected_df, check_like=True)
+
+
 if __name__ == "__main__":
-    pytest.main([__file__, "-s"])
+    pytest.main([__file__, "-s", "-k", "test_run_downscalegrid_regional"])

@@ -15,6 +15,7 @@ import pandas as pd
 from exactextract.exact_extract import exact_extract
 from osgeo.gdal import UseExceptions
 import rasterio
+import numpy as np
 
 from reVeal.fileio import read_vectors
 from reVeal.dataframe import dataframe_split
@@ -488,6 +489,78 @@ def calc_area_apportioned_sum(zones_df, dset_src, attribute, where=None, **kwarg
     complete_sums_df = sums_df[["value"]].reindex(zones_df.index, fill_value=0)
 
     return complete_sums_df
+
+
+def calc_area_weighted_majority(zones_df, dset_src, attribute, where=None, **kwargs):
+    """
+    Calculate the area-weighted majority of the specified attribute for input features
+    intersecting each zone in input zones dataframe. Area-weighted majority is defined
+    as the label or identifier that makes up the largest portion of each zone based on
+    area of intersection.
+
+    If no features intersect a given zone, a value of NA will be returned for that
+    zone.
+
+    Parameters
+    ----------
+    zones_df : geopandas.GeoDataFrame
+        Input zones dataframe, to which results will be aggregated. This
+        function assumes that the index of zones_df is unique for each feature. If
+        this is not the case, unexpected results may occur.
+    dset_src : str
+        Path to input vector dataset with geometries to be included in calculating
+        coverage percents. Expected to a be a Polygon or MultiPolygon input, though
+        this is not checked. Results for Points/MultiPoints and
+        LineStrings/MultiLineStrings will be returned as all NAs since those features
+        have zero area. Must be in the same CRS as the zones_df.
+    attribute : str
+        Name of attribute in dset_src to use for determing majority label/identifier.
+    where : str, optional
+        Optional query string to apply to the input dset_src to subset the features
+        included in the results. Should follow the format `expr` defined in
+        pandas.DataFrame.query.
+    **kwargs :
+        Arbitrary keyword arguments. Not used, but allows passing extra parameters.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Returns a pandas DataFrame with a "value" column, representing the
+        area-weighted majority of attribute values of features in each zone. The index
+        from the input zones_df is also included.
+    """
+
+    features_df = read_vectors(dset_src, where=where)
+
+    features_geom_types = set(features_df.geom_type.unique())
+    supported_geom_types = set(["Polygon", "MultiPolygon"])
+    if features_geom_types.isdisjoint(supported_geom_types):
+        results_df = pd.DataFrame({attribute: np.nan}, index=zones_df.index)
+        return results_df
+
+    if attribute not in features_df.columns:
+        raise KeyError(f"attribute {attribute} not a column in {dset_src}")
+
+    zone_idx = zones_df.index.name
+
+    intersection_df = gpd.overlay(
+        features_df[["geometry", attribute]],
+        zones_df.reset_index()[[zone_idx, "geometry"]],
+        how="intersection",
+        keep_geom_type=True,
+        make_valid=True,
+    )
+
+    intersection_df["area"] = intersection_df.area
+    sum_df = intersection_df.groupby(by=[zone_idx, attribute], as_index=False)[
+        ["area"]
+    ].sum()
+    sum_df.sort_values(by=["gid", "area"], ascending=[True, False], inplace=True)
+    majority_df = sum_df.groupby(by=[zone_idx]).first()
+
+    complete_majority_df = majority_df[[attribute]].reindex(zones_df.index)
+
+    return complete_majority_df
 
 
 def zonal_statistic_serial(zones_df, dset_src, stat, weights_dset_src=None):

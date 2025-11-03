@@ -102,7 +102,7 @@ def run(
         a vector dataset.
     out_dir : str
         Output parent directory. Results will be saved to a file named
-        "grid_char_norm.gpkg".
+        "grid_normalized.gpkg".
     attributes : dict, optional
         Attributes to be normalized. Must be a dictionary keyed by the name of
         the output column for each normalized attribute. Each value must be another
@@ -165,7 +165,7 @@ def run(
     out_grid_df = normalized_grid.run()
     LOGGER.info("Attribute normalization complete.")
 
-    out_gpkg = Path(out_dir).joinpath("grid_char_norm.gpkg").expanduser()
+    out_gpkg = Path(out_dir).joinpath("grid_normalized.gpkg").expanduser()
     LOGGER.info(f"Saving results to {out_gpkg}...")
     out_grid_df.to_file(out_gpkg)
     LOGGER.info("Saving complete.")

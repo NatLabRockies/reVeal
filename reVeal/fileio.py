@@ -15,6 +15,7 @@ from geopandas.io.arrow import (
 from pyogrio._ogr import _get_drivers_for_path
 from pandas.api.types import is_numeric_dtype
 import numpy as np
+import pandas as pd
 
 
 GEOMETRY_TYPES = {
@@ -246,9 +247,12 @@ def get_crs_parquet(dset_src):
     return authority_code
 
 
-def read_vectors(vector_src, where=None):
+def read_vectors(vector_src, where=None, **kwargs):
     """
     Read vector dataset in GeoParquet or pyogrio-compatible format to GeoDataFrame.
+
+    Note that if kwargs are passed such that the geometry column is not read, the
+    returned object will be a DataFrame rather than GeoDataFrame.
 
     Parameters
     ----------
@@ -258,11 +262,16 @@ def read_vectors(vector_src, where=None):
         Optional query string to apply to the input vector_src to subset the features
         included in the results. Should follow the format `expr` defined in
         pandas.DataFrame.query.
+    **kwargs: dict
+        Additional keyword arguments passed on to GeoPandas read_parquet() or
+        read_file() methods.
 
     Returns
     -------
-    geopandas.GeoDataFrame
-        Returns GeoDataFrame of vectors.
+    [geopandas.GeoDataFrame, pandas.DataFrame
+        Returns GeoDataFrame of vectors. If kwargs are passed such that the geometry
+        column is not read, the returned object will be a DataFrame rather than a
+        GeoDataFrame.
 
     Raises
     ------
@@ -272,9 +281,18 @@ def read_vectors(vector_src, where=None):
     """
 
     if Path(vector_src).suffix == ".parquet":
-        df = gpd.read_parquet(vector_src)
+        if "columns" in kwargs and "geometry" not in kwargs["columns"]:
+            df = pd.read_parquet(vector_src, **kwargs)
+        else:
+            df = gpd.read_parquet(vector_src, **kwargs)
     elif _get_drivers_for_path(vector_src):
-        df = gpd.read_file(vector_src)
+        if (
+            "columns" in kwargs
+            and "geometry" not in kwargs["columns"]
+            and "read_geometry" not in kwargs
+        ):
+            kwargs["read_geometry"] = False
+        df = gpd.read_file(vector_src, **kwargs)
     else:
         raise IOError(
             f"Unable to read vectors from input file {vector_src}. "

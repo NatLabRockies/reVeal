@@ -15,6 +15,8 @@ from reVeal.grid import (
     CharacterizeGrid,
     NormalizeGrid,
     ScoreWeightedGrid,
+    TotalDownscaleGrid,
+    RegionalDownscaleGrid,
 )
 
 TEST_DATA_DIR = PACKAGE_DIR.parent.joinpath("tests", "data")
@@ -95,11 +97,73 @@ def score_wt_grid():
     with open(in_config_path, "r") as f:
         config_data = json.load(f)
     config_data["grid"] = (
-        TEST_DATA_DIR / "normalize" / "outputs" / "grid_char_norm.gpkg"
+        TEST_DATA_DIR / "normalize" / "outputs" / "grid_normalized.gpkg"
     ).as_posix()
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         grid = ScoreWeightedGrid(config_data)
+
+    return grid
+
+
+@pytest.fixture
+def downscale_total_grid():
+    """Return a DownscaleGrid instance for downscaling total projections"""
+
+    in_config_path = TEST_DATA_DIR / "downscale" / "config_total.json"
+    with open(in_config_path, "r") as f:
+        config_data = json.load(f)
+    config_data["grid"] = (TEST_DATA_DIR / config_data["grid"]).as_posix()
+    config_data["load_projections"] = (
+        TEST_DATA_DIR / config_data["load_projections"]
+    ).as_posix()
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        grid = TotalDownscaleGrid(config_data)
+
+    return grid
+
+
+@pytest.fixture
+def downscale_regional_grid():
+    """Return a DownscaleGrid instance for downscaling regional projections"""
+
+    in_config_path = TEST_DATA_DIR / "downscale" / "config_regional.json"
+    with open(in_config_path, "r") as f:
+        config_data = json.load(f)
+    config_data["grid"] = (TEST_DATA_DIR / config_data["grid"]).as_posix()
+    config_data["load_projections"] = (
+        TEST_DATA_DIR / config_data["load_projections"]
+    ).as_posix()
+    config_data["regions"] = (TEST_DATA_DIR / config_data["regions"]).as_posix()
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        grid = RegionalDownscaleGrid(config_data)
+
+    return grid
+
+
+@pytest.fixture
+def downscale_region_weights_grid():
+    """
+    Return a DownscaleGrid instance for downscaling total projections using region
+    weights
+    """
+
+    in_config_path = TEST_DATA_DIR / "downscale" / "config_region_weights.json"
+    with open(in_config_path, "r") as f:
+        config_data = json.load(f)
+    config_data["grid"] = (TEST_DATA_DIR / config_data["grid"]).as_posix()
+    config_data["load_projections"] = (
+        TEST_DATA_DIR / config_data["load_projections"]
+    ).as_posix()
+    config_data["regions"] = (TEST_DATA_DIR / config_data["regions"]).as_posix()
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        grid = RegionalDownscaleGrid(config_data)
 
     return grid

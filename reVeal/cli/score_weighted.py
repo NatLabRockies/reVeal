@@ -89,7 +89,7 @@ def run(
     _local=True,
 ):
     """
-    Calculated a composite score from specified attributes and weights.
+    Calculate a composite score from specified attributes and weights.
 
     Convert specified attribute values of input grid to a scale of 0 to 1 using the
     specified method(s). Outputs a new GeoPackage containing the input grid with added
@@ -123,7 +123,7 @@ def run(
             If this column exists in the input grid, it will be overwritten.
     out_dir : str
         Output parent directory. Results will be saved to a file named
-        "grid_char_weighted_scores.gpkg".
+        "grid_scores.gpkg".
     _local : bool
         Flag indicating whether the code is being run locally or via HPC job
         submissions. NOTE: This is not a user provided parameter - it is determined
@@ -151,7 +151,7 @@ def run(
     out_grid_df = score_weighted_grid.run()
     LOGGER.info("Weighted scoring complete.")
 
-    out_gpkg = Path(out_dir).joinpath("grid_char_weighted_scores.gpkg").expanduser()
+    out_gpkg = Path(out_dir).joinpath("grid_scores.gpkg").expanduser()
     LOGGER.info(f"Saving results to {out_gpkg}...")
     out_grid_df.to_file(out_gpkg)
     LOGGER.info("Saving complete.")

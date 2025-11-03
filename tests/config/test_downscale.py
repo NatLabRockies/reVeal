@@ -1,0 +1,1161 @@
+# -*- coding: utf-8 -*-
+"""
+config.characdownscale module tests
+"""
+# pylint: disable=too-many-lines
+from csv import QUOTE_NONNUMERIC
+
+import pytest
+import geopandas as gpd
+import pandas as pd
+from pydantic import ValidationError
+
+from reVeal.config.downscale import (
+    BaseDownscaleConfig,
+    TotalDownscaleConfig,
+    RegionalDownscaleConfig,
+    DownscaleConfig,
+)
+from reVeal.errors import CSVReadError, FileFormatError
+
+DEFAULT_REGION_WEIGHTS = {
+    "Carolinas": 0.04,
+    "Central Great Plains": 0.04,
+    "Florida": 0.04,
+    "Great Basin": 0.04,
+    "Metropolitan Chicago": 0.04,
+    "Metropolitan New York": 0.04,
+    "Michigan": 0.04,
+    "Mid-Atlantic": 0.04,
+    "Middle Mississippi Valley": 0.04,
+    "Mississippi Delta": 0.04,
+    "New England": 0.04,
+    "Northern California": 0.04,
+    "Northern Great Plains": 0.04,
+    "Northwest": 0.04,
+    "Ohio Valley": 0.04,
+    "Rockies": 0.04,
+    "Southeast": 0.04,
+    "Southern California": 0.04,
+    "Southern Great Plains": 0.04,
+    "Southwest": 0.04,
+    "Tennessee Valley": 0.04,
+    "Texas": 0.04,
+    "Upper Mississippi Valley": 0.04,
+    "Upstate New York": 0.04,
+    "Virginia": 0.04,
+}
+
+
+@pytest.mark.parametrize(
+    "baseline_year",
+    [2020, 2023],
+)
+@pytest.mark.parametrize(
+    "projection_resolution", ["regional", "total", "REGIONAL", "TOTAL"]
+)
+def test_basedownscaleconfig_valid_inputs(
+    data_dir, baseline_year, projection_resolution
+):
+    """
+    Test that BaseDownsaleConfig can be instantiated with valid inputs.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": baseline_year,
+        "load_projections": load_projections,
+        "projection_resolution": projection_resolution,
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "max_site_addition_per_year": 1000,
+        "site_saturation_limit": 0.5,
+        "priority_power": 3,
+        "n_bootstraps": 100,
+        "random_seed": 1,
+    }
+
+    BaseDownscaleConfig(**config)
+
+
+@pytest.mark.parametrize(
+    "baseline_year",
+    [2020, 2023],
+)
+@pytest.mark.parametrize(
+    "projection_resolution", ["regional", "total", "REGIONAL", "TOTAL"]
+)
+def test_basedownscaleconfig_valid_inputs_required_only(
+    data_dir, baseline_year, projection_resolution
+):
+    """
+    Test that BaseDownsaleConfig can be instantiated with valid inputs
+    for only the required parameters (skipping the optional parameters)
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": baseline_year,
+        "load_projections": load_projections,
+        "projection_resolution": projection_resolution,
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+    }
+
+    BaseDownscaleConfig(**config)
+
+
+@pytest.mark.parametrize(
+    "update_parameters",
+    [
+        {"max_site_addition_per_year": 0},
+        {"max_site_addition_per_year": -1},
+        {"site_saturation_limit": 0},
+        {"site_saturation_limit": -1},
+        {"priority_power": 0},
+        {"priority_power": -1},
+        {"n_bootstraps": 0},
+        {"n_bootstraps": -1},
+        {"random_seed": "one"},
+    ],
+)
+def test_basedownscaleconfig_bad_optional_inputs(data_dir, update_parameters):
+    """
+    Test that BaseDownsaleConfig raises validation errors for optional inputs that
+    don't meed the corresponding field constraints.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "total",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "max_site_addition_per_year": 1000,
+        "site_saturation_limit": 0.5,
+        "priority_power": 3,
+        "n_bootstraps": 100,
+        "random_seed": 1,
+    }
+    config.update(update_parameters)
+
+    with pytest.raises(ValidationError, match="Input should be"):
+        BaseDownscaleConfig(**config)
+
+
+@pytest.mark.parametrize(
+    "update_parameters",
+    [
+        {"grid_priority": "best_site_score"},
+        {"grid_baseline_load": "existing_mw"},
+        {"grid_capacity": "cap_mw"},
+        {"load_value": "dc_load_gw"},
+        {"load_year": "yr"},
+    ],
+)
+def test_basedownscaleconfig_missing_attribute(data_dir, update_parameters):
+    """
+    Test that BaseDownscaleConfig raises a ValueError when a non-existent column is
+    specified for required grid or load_projections columns.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "total",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+    }
+    config.update(update_parameters)
+
+    with pytest.raises(ValueError, match="Specified attribute .* does not exist"):
+        BaseDownscaleConfig(**config)
+
+
+@pytest.mark.parametrize(
+    "test_col",
+    ["suitability_score", "dc_capacity_mw_existing", "developable_capacity_mw"],
+)
+def test_basedownscaleconfig_grid_nonnumeric_attribute(data_dir, tmp_path, test_col):
+    """
+    Test that BaseDownscaleConfig raises a ValueError when a non-numeric column is
+    specified for either the grid_priority or grid_baseline_load columns.
+    """
+
+    src_grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    grid_df = gpd.read_file(src_grid)
+    grid_df[test_col] = grid_df[test_col].astype(str)
+    grid = tmp_path / "grid.gpkg"
+    grid_df.to_file(grid)
+
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "total",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+    }
+
+    with pytest.raises(ValueError, match="Specified grid attribute .* must be numeric"):
+        BaseDownscaleConfig(**config)
+
+
+def test_basedownscaleconfig_load_projections_fileformaterror(data_dir, tmp_path):
+    """
+    Test that BaseDownscaleConfig raises a FileFormatError when passed an input
+    load_projections file that is not a valid CSV file.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = tmp_path / "load.csv"
+    with open(load_projections, "w") as dst:
+        dst.write(
+            "Hello!\n"
+            "This is a text file that I made for tests, what do you think?\n"
+            "If I'm correct, I think that this needs 3 lines, at least, to fail."
+        )
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "total",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+    }
+
+    with pytest.raises(FileFormatError, match="Unable to parse text as CSV."):
+        BaseDownscaleConfig(**config)
+
+
+def test_basedownscaleconfig_load_projections_csvreaderror(data_dir, tmp_path):
+    """
+    Test that BaseDownscaleConfig raises a CSVReadError when passed an input
+    load_projections file that is not encoded in utf-8.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    src_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    load_projections = tmp_path / "load.csv"
+    load_df = pd.read_csv(src_projections)
+    load_df.to_csv(load_projections, encoding="utf-16")
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "total",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+    }
+
+    with pytest.raises(CSVReadError, match="Unable to parse input as 'utf-8' text"):
+        BaseDownscaleConfig(**config)
+
+
+@pytest.mark.parametrize("test_col", ["dc_load_mw", "year"])
+def test_basedownscaleconfig_load_projections_nonnumeric_attribute(
+    data_dir, tmp_path, test_col
+):
+    """
+    Test that BaseDownscaleConfig raises a ValueError when a non-numeric column is
+    specified for either the grid_priority or grid_baseline_load columns.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    src_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+
+    load_df = pd.read_csv(src_projections)
+    load_df[test_col] = "a"
+    load_projections = tmp_path / "projections.csv"
+    load_df.to_csv(load_projections, header=True, index=False, quoting=QUOTE_NONNUMERIC)
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "total",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+    }
+
+    with pytest.raises(
+        ValueError, match="Specified load_projections attribute .* must be numeric"
+    ):
+        BaseDownscaleConfig(**config)
+
+
+def test_basedownscaleconfig_load_projections_predates_baseline_error(data_dir):
+    """
+    Test that BaseDownsaleConfig raises a ValueError when the load projections predate
+    the baseline load year.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2030,
+        "load_projections": load_projections,
+        "projection_resolution": "total",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+    }
+
+    with pytest.raises(ValueError, match="First year in load_projections .* predates"):
+        BaseDownscaleConfig(**config)
+
+
+@pytest.mark.parametrize(
+    "baseline_year",
+    [2020, 2023],
+)
+@pytest.mark.parametrize("projection_resolution", ["total", "TOTAL"])
+def test_totaldownscaleconfig_valid_inputs(
+    data_dir, baseline_year, projection_resolution
+):
+    """
+    Test that TotalDownsaleConfig can be instantiated with valid inputs.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": baseline_year,
+        "load_projections": load_projections,
+        "projection_resolution": projection_resolution,
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+    }
+
+    TotalDownscaleConfig(**config)
+
+
+def test_totaldownscaleconfig_resolution_error(data_dir):
+    """
+    Test that TotalDownsaleConfig raises a validation error when passed "total" as
+    the projection_resolution instead of "regional".
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+    }
+
+    with pytest.raises(ValidationError, match="Input should be 'total"):
+        TotalDownscaleConfig(**config)
+
+
+def test_totaldownscaleconfig_load_projections_duplicate_years(data_dir, tmp_path):
+    """
+    Test that TotalDownscaleConfig raises a ValueError when there are duplicate
+    years in the load_projections dataset.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    src_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+
+    load_df = pd.read_csv(src_projections)
+    new_load_df = pd.concat([load_df.iloc[0:1], load_df], ignore_index=True)
+    load_projections = tmp_path / "projections.csv"
+    new_load_df.to_csv(load_projections, header=True, index=False)
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "total",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+    }
+
+    with pytest.raises(
+        ValueError, match="Input load_projections dataset has duplicate entries"
+    ):
+        TotalDownscaleConfig(**config)
+
+
+@pytest.mark.parametrize(
+    "baseline_year",
+    [2020, 2023],
+)
+@pytest.mark.parametrize("projection_resolution", ["regional", "REGIONAL"])
+@pytest.mark.parametrize("regions_ext", ["gpkg", "parquet"])
+def test_regionaldownscaleconfig_valid_inputs_load_regions(
+    data_dir, baseline_year, projection_resolution, regions_ext
+):
+    """
+    Test that RegionalDownsaleConfig can be instantiated with valid inputs, including
+    regional load projections (specified via the load_regions parameter).
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_regional.csv"
+    )
+    regions = (
+        data_dir / "downscale" / "inputs" / "regions" / f"eer_adp_zones.{regions_ext}"
+    )
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": baseline_year,
+        "load_projections": load_projections,
+        "projection_resolution": projection_resolution,
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "load_regions": "zone",
+        "regions": regions,
+        "region_names": "emm_zone",
+    }
+
+    downscale_config = RegionalDownscaleConfig(**config)
+    assert downscale_config.regions_ext == f".{regions_ext}"
+    expected_regions_flavor = "ogr" if regions_ext == "gpkg" else "geoparquet"
+    assert downscale_config.regions_flavor == expected_regions_flavor
+
+
+@pytest.mark.parametrize(
+    "baseline_year",
+    [2020, 2023],
+)
+@pytest.mark.parametrize("projection_resolution", ["regional", "REGIONAL"])
+@pytest.mark.parametrize("regions_ext", ["gpkg", "parquet"])
+def test_regionaldownscaleconfig_valid_inputs_region_weights(
+    data_dir, baseline_year, projection_resolution, regions_ext
+):
+    """
+    Test that RegionalDownsaleConfig can be instantiated with valid inputs, including
+    regional load projections (specified via the load_regions parameter).
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    regions = (
+        data_dir / "downscale" / "inputs" / "regions" / f"eer_adp_zones.{regions_ext}"
+    )
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": baseline_year,
+        "load_projections": load_projections,
+        "projection_resolution": projection_resolution,
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "regions": regions,
+        "region_names": "emm_zone",
+        "region_weights": DEFAULT_REGION_WEIGHTS,
+    }
+
+    downscale_config = RegionalDownscaleConfig(**config)
+    assert downscale_config.regions_ext == f".{regions_ext}"
+    expected_regions_flavor = "ogr" if regions_ext == "gpkg" else "geoparquet"
+    assert downscale_config.regions_flavor == expected_regions_flavor
+
+
+def test_regionaldownscaleconfig_resolution_error(data_dir):
+    """
+    Test that RegionalDownsaleConfig raises a validation error when passed "regional"
+    as the projection_resolution instead of "total".
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "total",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "load_regions": "zone",
+        "regions": regions,
+        "region_names": "emm_zone",
+    }
+
+    with pytest.raises(ValidationError, match="Input should be 'regional"):
+        RegionalDownscaleConfig(**config)
+
+
+def test_regionaldownscaleconfig_geom_type_error(data_dir, tmp_path):
+    """
+    Test that RegionalDownsaleConfig raises a TypeError when passed input regions that
+    are not polygons/multipolygons.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_regional.csv"
+    )
+    src_regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+    regions_df = gpd.read_file(src_regions)
+    regions_df["geometry"] = regions_df.centroid
+    regions = tmp_path / "regions.gpkg"
+    regions_df.to_file(regions)
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "load_regions": "zone",
+        "regions": regions,
+        "region_names": "emm_zone",
+    }
+
+    with pytest.raises(
+        TypeError,
+        match="Input regions dataset must have geometries of one of the following",
+    ):
+        RegionalDownscaleConfig(**config)
+
+
+def test_regionaldownscaleconfig_crs_error(data_dir, tmp_path):
+    """
+    Test that RegionalDownsaleConfig raises a TypeError when passed input regions that
+    have a different CRS than the grid.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_regional.csv"
+    )
+    src_regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+    regions_df = gpd.read_file(src_regions).to_crs("EPSG:4326")
+    regions = tmp_path / "regions.gpkg"
+    regions_df.to_file(regions)
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "load_regions": "zone",
+        "regions": regions,
+        "region_names": "emm_zone",
+    }
+
+    with pytest.raises(
+        ValueError, match="CRS of regions dataset .* does not match grid"
+    ):
+        RegionalDownscaleConfig(**config)
+
+
+def test_regionaldownscaleconfig_region_names_error(data_dir):
+    """
+    Test that RegionalDownsaleConfig raises a ValueError when the specified
+    region_names attribute does not exist in the regions dataset.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_regional.csv"
+    )
+    regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "load_regions": "zone",
+        "regions": regions,
+        "region_names": "zones",
+    }
+
+    with pytest.raises(
+        ValueError, match="region_names attribute .* does not exist in source"
+    ):
+        RegionalDownscaleConfig(**config)
+
+
+def test_regionaldownscaleconfig_neither_load_regions_nor_region_weights(data_dir):
+    """
+    Test that RegionalDownsaleConfig raises a ValueError when neither load_regions nor
+    region_weights are specified.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_regional.csv"
+    )
+    regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "regions": regions,
+        "region_names": "emm_zone",
+    }
+
+    with pytest.raises(
+        ValueError, match="Either load_regions or region_weights must be specified"
+    ):
+        RegionalDownscaleConfig(**config)
+
+
+def test_regionaldownscaleconfig_both_load_regions_and_region_weights(data_dir):
+    """
+    Test that RegionalDownsaleConfig raises a ValueError when both load_regions and
+    region_weights are specified.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_regional.csv"
+    )
+    regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "load_regions": "zone",
+        "regions": regions,
+        "region_weights": DEFAULT_REGION_WEIGHTS,
+        "region_names": "emm_zone",
+    }
+
+    with pytest.raises(
+        ValueError, match="Only one of load_regions or region_weights can be specified"
+    ):
+        RegionalDownscaleConfig(**config)
+
+
+def test_regionaldownscaleconfig_missing_load_regions(data_dir):
+    """
+    Test that RegionalDownsaleConfig raises a ValueError when passed input load_regions
+    column that does not exist in the load_projections dataset.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_regional.csv"
+    )
+    regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "load_regions": "REGION",
+        "regions": regions,
+        "region_names": "emm_zone",
+    }
+
+    with pytest.raises(
+        ValueError, match="Specified attribute .* does not exist in the input"
+    ):
+        RegionalDownscaleConfig(**config)
+
+
+def test_regionaldownscaleconfig_duplicate_region_years(data_dir, tmp_path):
+    """
+    Test that RegionalDownsaleConfig raises a ValueError when there are duplicate
+    entries for regions + year in the load_projections dataset.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    src_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_regional.csv"
+    )
+
+    load_df = pd.read_csv(src_projections)
+    new_load_df = pd.concat([load_df.iloc[0:1], load_df], ignore_index=True)
+    load_projections = tmp_path / "projections.csv"
+    new_load_df.to_csv(load_projections, header=True, index=False)
+
+    regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "load_regions": "zone",
+        "regions": regions,
+        "region_names": "emm_zone",
+    }
+
+    with pytest.raises(
+        ValueError, match="Input load_projections dataset has duplicate entries"
+    ):
+        RegionalDownscaleConfig(**config)
+
+
+def test_regionaldownscaleconfig_region_inconsistency_projections(data_dir, tmp_path):
+    """
+    Test that RegionalDownsaleConfig raises a ValueError when there are
+    inconsistent regions between the regions dataset and the load projections
+    dataset.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    src_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_regional.csv"
+    )
+
+    load_df = pd.read_csv(src_projections)
+    load_df["zone"] = load_df["zone"] + " Zone"
+    load_projections = tmp_path / "projections.csv"
+    load_df.to_csv(load_projections, header=True, index=False)
+
+    regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "load_regions": "zone",
+        "regions": regions,
+        "region_names": "emm_zone",
+    }
+
+    with pytest.raises(
+        ValueError, match="Region names do not match between .* and zone column in"
+    ):
+        RegionalDownscaleConfig(**config)
+
+
+def test_regionaldownscaleconfig_region_inconsistency_weights(data_dir):
+    """
+    Test that RegionalDownsaleConfig raises a ValueError when there are
+    inconsistent regions between the regions dataset and the region weights
+    dictionary.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+    region_weights = {
+        "Carolinas": 0.04,
+        "Central Great Plains": 0.04,
+        "Florida": 0.04,
+        "Great Basin": 0.04,
+        "Metropolitan Chicago": 0.04,
+    }
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "regions": regions,
+        "region_weights": region_weights,
+        "region_names": "emm_zone",
+    }
+
+    with pytest.raises(
+        ValueError,
+        match="Region names do not match between .* and keys in region_weights",
+    ):
+        RegionalDownscaleConfig(**config)
+
+
+def test_regionaldownscaleconfig_duplicate_years(data_dir):
+    """
+    Test that RegionalDownsaleConfig raises a ValueError when using
+    region_weights and there are duplicate entries for years in the
+    load_projections_dataset
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_regional.csv"
+    )
+    regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "regions": regions,
+        "region_weights": DEFAULT_REGION_WEIGHTS,
+        "region_names": "emm_zone",
+    }
+
+    with pytest.raises(
+        ValueError,
+        match="Input load_projections dataset has duplicate entries for some years",
+    ):
+        RegionalDownscaleConfig(**config)
+
+
+def test_downscaleconfig_valid_total(data_dir):
+    """
+    Test DownscaleConfig can be instantiated successfully with valid inputs
+    for projection_resolution = "total".
+    """
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    downscale_config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "total",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+    }
+
+    downscale_config = DownscaleConfig(**downscale_config)
+    assert isinstance(downscale_config, TotalDownscaleConfig)
+
+
+def test_downscaleconfig_valid_regional_load_regions(data_dir):
+    """
+    Test DownscaleConfig can be instantiated successfully with valid inputs
+    for projection_resolution = "regional" and a load_regions column in the
+    input load_projections dataset.
+    """
+
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_regional.csv"
+    )
+    regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_regions": "zone",
+        "load_year": "year",
+        "regions": regions,
+        "region_names": "emm_zone",
+    }
+
+    downscale_config = DownscaleConfig(**config)
+    assert isinstance(downscale_config, RegionalDownscaleConfig)
+
+
+def test_downscaleconfig_valid_regional_region_weights(data_dir):
+    """
+    Test DownscaleConfig can be instantiated successfully with valid inputs
+    for projection_resolution = "regional" and a region_weights input.
+    """
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "regions": regions,
+        "region_names": "emm_zone",
+        "region_weights": DEFAULT_REGION_WEIGHTS,
+    }
+    downscale_config = DownscaleConfig(**config)
+    assert isinstance(downscale_config, RegionalDownscaleConfig)
+
+
+def test_downscaleconfig_bad_region_weights_sum(data_dir):
+    """
+    Test that a ValueError is raised when DownscaleConfig is instantiated with weights
+    that do not sum to 1.
+    """
+    grid = data_dir / "downscale" / "inputs" / "grid_char_weighted_scores.gpkg"
+    load_projections = (
+        data_dir
+        / "downscale"
+        / "inputs"
+        / "load_growth_projections"
+        / "eer_us-adp-2024-central_national.csv"
+    )
+    regions = data_dir / "downscale" / "inputs" / "regions" / "eer_adp_zones.gpkg"
+
+    bad_weights = {k: v * 10 for k, v in DEFAULT_REGION_WEIGHTS.items()}
+
+    config = {
+        "grid": grid,
+        "grid_priority": "suitability_score",
+        "grid_baseline_load": "dc_capacity_mw_existing",
+        "grid_capacity": "developable_capacity_mw",
+        "baseline_year": 2022,
+        "load_projections": load_projections,
+        "projection_resolution": "regional",
+        "load_value": "dc_load_mw",
+        "load_year": "year",
+        "regions": regions,
+        "region_names": "emm_zone",
+        "region_weights": bad_weights,
+    }
+    with pytest.raises(
+        ValueError, match="Weights of input region_weights must sum to 1"
+    ):
+        DownscaleConfig(**config)
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])
