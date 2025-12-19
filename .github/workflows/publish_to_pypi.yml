@@ -27,4 +27,4 @@ jobs:
         environments: build
 
     - name: Build and publish
-      run: pixi run -e build upload-wheels
+      run: pixi run -e build publish-pypi
