@@ -25,10 +25,11 @@ jobs:
         cache: true
         cache-write: false
         environments: dev
+        activate-environment: false
 
     - name: Generate coverage report
       run: |
-        pixi reinstall -e dev --locked reVeal
+        pixi reinstall -e dev --locked NLR-reVeal
         pixi run -e dev --locked tests
 
     - name: Upload coverage to Codecov
