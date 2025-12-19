@@ -218,4 +218,4 @@ addopts = "--disable-warnings"
 testpaths = [
   "tests"
 ]
-markers = "skip_ci: marks test as one that should not be run on Github Workflows"
+markers = "skip_ci: marks test as one that should not be run on GitHub Workflows"

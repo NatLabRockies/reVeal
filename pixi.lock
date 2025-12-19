@@ -16812,8 +16812,8 @@ packages:
   timestamp: 1758194464430
 - pypi: ./
   name: nlr-reveal
-  version: 0.1.1.dev26+g74d9ddc56.d20251219
-  sha256: 5832b3a1c6fc88e116acfca272743a09d80f0e724e214efbe6b6f46e3aba12a7
+  version: 0.1.1.dev30+g731003543.d20251219
+  sha256: 5a7debdacffdc91b2d89818ce69e9c9ca6a13b72495815bc2605ebc6dbec56ea
   requires_dist:
   - exactextract>=0.3.0,<0.4
   - geopandas>=1.1.1,<2
