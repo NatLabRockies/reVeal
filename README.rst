@@ -54,13 +54,13 @@ For detailed instructions, see the `installation documentation <https://nrel.git
 
 Quickstart
 ==========
-<!-- To run a quick reVeal demo, use:
+.. To run a quick reVeal demo, use:
 
-.. code-block:: shell
+.. .. code-block:: shell
 
-    pixi run demo
+..     pixi run demo
 
-This will generate sample map outputs using example reV geothermal supply curve outputs. -->
+.. This will generate sample map outputs using example reV geothermal supply curve outputs.
 
 For more information on running ``reVeal``, see
 `Usage <https://github.com/NREL/reVeal/blob/main/USAGE.md>`_.
