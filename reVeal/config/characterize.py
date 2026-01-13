@@ -32,7 +32,7 @@ from reVeal.config.config import BaseEnum, BaseModelStrict, BaseGridConfig
 
 VALID_CHARACTERIZATION_METHODS = {
     "feature count": {
-        "valid_inputs": ["point"],
+        "valid_inputs": ["point", "line", "polygon"],
         "attribute_required": False,
         "supports_weights": False,
         "supports_parallel": False,
