@@ -560,6 +560,8 @@ def reduce_output(grid_projections_df, load_value_col):
     ----------
     grid_projections_df : pandas.DataFrame
         DataFrame containing downscaled load projections.
+    load_value_col : str
+        Name of column in ``grid_projections_df`` containing projections of load.
 
     Returns
     -------
