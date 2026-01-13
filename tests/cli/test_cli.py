@@ -340,7 +340,7 @@ def test_downscale(
         data_dir
         / "downscale"
         / "outputs"
-        / f"grid_downscaled_{expected_gpkg_stub}_year_cap.gpkg"
+        / f"grid_downscaled_{expected_gpkg_stub}_year_cap_centroid.gpkg"
     )
     expected_df = gpd.read_file(expected_gpkg)
 
