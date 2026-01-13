@@ -96,10 +96,15 @@ def test_downscale_total(data_dir, max_site_addition_per_year):
 
     if max_site_addition_per_year:
         expected_src = (
-            data_dir / "downscale" / "outputs" / "grid_downscaled_total_year_cap.gpkg"
+            data_dir
+            / "downscale"
+            / "outputs"
+            / "grid_downscaled_total_year_cap_centroid.gpkg"
         )
     else:
-        expected_src = data_dir / "downscale" / "outputs" / "grid_downscaled_total.gpkg"
+        expected_src = (
+            data_dir / "downscale" / "outputs" / "grid_downscaled_total_centroid.gpkg"
+        )
     expected_df = gpd.read_file(expected_src)
 
     assert_geodataframe_equal(results_df, expected_df, check_like=True)
@@ -156,11 +161,14 @@ def test_downscale_regional(data_dir, max_site_addition_per_year):
             data_dir
             / "downscale"
             / "outputs"
-            / "grid_downscaled_regional_year_cap.gpkg"
+            / "grid_downscaled_regional_year_cap_centroid.gpkg"
         )
     else:
         expected_src = (
-            data_dir / "downscale" / "outputs" / "grid_downscaled_regional.gpkg"
+            data_dir
+            / "downscale"
+            / "outputs"
+            / "grid_downscaled_regional_centroid.gpkg"
         )
     expected_df = gpd.read_file(expected_src)
 
