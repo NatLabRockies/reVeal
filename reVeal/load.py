@@ -547,14 +547,13 @@ def downscale_regional(
     if not named_index:
         grid_projections_df.drop(columns=grid_idx, inplace=True)
 
-    grid_projections_df = reduce_output(grid_projections_df, load_value_col)
-
     return grid_projections_df
 
 
 def reduce_output(grid_projections_df, load_value_col):
     """
-    Reduce output by using centroids and filtering to only points with data center load.
+    Reduce output by using centroids and filtering to only points with
+    total data center load greater than 0.
 
     Parameters
     ----------
@@ -566,7 +565,8 @@ def reduce_output(grid_projections_df, load_value_col):
     Returns
     -------
     pandas.DataFrame
-        Reduced DataFrame with centroids and filtered to only points with dc load.
+        Reduced DataFrame with centroids and filtered to only points with
+        total load greater than 0.
     """
     grid_projections_df["geometry"] = grid_projections_df.geometry.centroid
     grid_projections_df = grid_projections_df[
