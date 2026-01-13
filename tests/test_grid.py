@@ -413,7 +413,10 @@ def test_run_totaldownscalegrid(data_dir, downscale_total_grid):
         results_df = downscale_total_grid.run()
 
     expected_src = (
-        data_dir / "downscale" / "outputs" / "grid_downscaled_total_year_cap.gpkg"
+        data_dir
+        / "downscale"
+        / "outputs"
+        / "grid_downscaled_total_year_cap_centroid.gpkg"
     )
     expected_df = gpd.read_file(expected_src)
 
@@ -434,7 +437,10 @@ def test_run_regionaldownscalegrid(data_dir, downscale_regional_grid):
     )
 
     expected_src = (
-        data_dir / "downscale" / "outputs" / "grid_downscaled_regional_year_cap.gpkg"
+        data_dir
+        / "downscale"
+        / "outputs"
+        / "grid_downscaled_regional_year_cap_centroid.gpkg"
     )
     expected_df = gpd.read_file(expected_src)
 
@@ -458,7 +464,7 @@ def test_run_regionaldownscalegrid_weights(data_dir, downscale_region_weights_gr
         data_dir
         / "downscale"
         / "outputs"
-        / "grid_downscaled_region_weights_year_cap.gpkg"
+        / "grid_downscaled_region_weights_year_cap_centroid.gpkg"
     )
     expected_df = gpd.read_file(expected_src)
 

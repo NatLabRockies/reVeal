@@ -572,5 +572,6 @@ def reduce_output(grid_projections_df, load_value_col):
     """
     reduced_df = grid_projections_df.copy()
     reduced_df["geometry"] = reduced_df.geometry.centroid
+    reduced_df.set_geometry("geometry", inplace=True)
     reduced_df = reduced_df[reduced_df[f"total_{load_value_col}"] > 0]
-    return reduced_df
+    return reduced_df.reset_index(drop=True)
