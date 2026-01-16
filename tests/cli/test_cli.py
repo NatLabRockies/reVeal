@@ -300,11 +300,13 @@ def test_score_weighted_invalid_config(
     "config",
     ["config_total.json", "config_regional.json", "config_region_weights.json"],
 )
+@pytest.mark.parametrize("reduce_output", [False, True])
 def test_downscale(
     cli_runner,
     tmp_path,
     data_dir,
     config,
+    reduce_output,
 ):
     """
     Happy path test for the downscale command. Tests that it produces the
@@ -335,12 +337,14 @@ def test_downscale(
 
     out_df = gpd.read_file(out_gpkg)
 
+    suffix = "_centroid" if reduce_output else ""
+
     expected_gpkg_stub = config.replace("config_", "").replace(".json", "")
     expected_gpkg = (
         data_dir
         / "downscale"
         / "outputs"
-        / f"grid_downscaled_{expected_gpkg_stub}_year_cap_centroid.gpkg"
+        / f"grid_downscaled_{expected_gpkg_stub}_year_cap{suffix}.gpkg"
     )
     expected_df = gpd.read_file(expected_gpkg)
 
