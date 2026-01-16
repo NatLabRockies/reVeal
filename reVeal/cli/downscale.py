@@ -255,7 +255,7 @@ def run(
         priority_power=priority_power,
         n_bootstraps=n_bootstraps,
         random_seed=random_seed,
-        reduced_output=reduce_output,
+        reduce_output=reduce_output,
     )
 
     if max_workers is not None:

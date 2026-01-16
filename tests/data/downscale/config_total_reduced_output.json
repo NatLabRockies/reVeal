@@ -13,5 +13,5 @@
   "priority_power": 100,
   "n_bootstraps": 500,
   "random_seed": 0,
-  "reduced_output": true
+  "reduce_output": true
 }
