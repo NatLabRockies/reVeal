@@ -372,7 +372,7 @@ def downscale_total(
     grid_projections_df.drop(columns=drop_cols, inplace=True)
 
     if reduce_output:
-        grid_projections_df = reduce_output(grid_projections_df, load_value_col)
+        grid_projections_df = _reduce_output(grid_projections_df, load_value_col)
 
     return grid_projections_df
 
@@ -558,7 +558,7 @@ def downscale_regional(
     if not named_index:
         grid_projections_df.drop(columns=grid_idx, inplace=True)
     if reduce_output:
-        grid_projections_df = reduce_output(grid_projections_df, load_value_col)
+        grid_projections_df = _reduce_output(grid_projections_df, load_value_col)
 
     return grid_projections_df
 
