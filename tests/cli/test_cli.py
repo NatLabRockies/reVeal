@@ -339,6 +339,7 @@ def test_downscale(cli_runner, tmp_path, data_dir, config):
 
     expected_gpkg_stub = config.replace("config_", "").replace(".json", "")
     suffix = "_centroid" if "reduced_output" in expected_gpkg_stub else ""
+    expected_gpkg_stub = expected_gpkg_stub.replace("_reduced_output", "")
     expected_gpkg = (
         data_dir
         / "downscale"
