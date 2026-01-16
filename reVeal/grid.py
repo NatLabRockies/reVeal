@@ -543,6 +543,7 @@ class TotalDownscaleGrid(RunnableGrid):
             n_bootstraps=self.config.n_bootstraps,
             random_seed=self.config.random_seed,
             hide_pbar=True,
+            reduce_output=self.config.reduce_output,
         )
 
         return downscaled_df
@@ -605,6 +606,7 @@ class RegionalDownscaleGrid(RunnableGrid):
             n_bootstraps=self.config.n_bootstraps,
             random_seed=self.config.random_seed,
             hide_pbar=True,
+            reduce_output=self.config.reduce_output,
         )
 
         return downscaled_df

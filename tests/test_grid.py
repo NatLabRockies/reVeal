@@ -483,4 +483,4 @@ def test_run_regionaldownscalegrid_weights(
 
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-s", "-k", "test_run_downscalegrid_regional"])
+    pytest.main([__file__, "-s"])
