@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pyproj
 
-# from reVeal._version import __version__
-__version__ = "0.1.0"
+from reVeal._version import __version__
+
 # stop to_crs() bugs
 pyproj.network.set_network_enabled(active=False)
 

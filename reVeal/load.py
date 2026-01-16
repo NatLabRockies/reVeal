@@ -155,6 +155,7 @@ def downscale_total(
     random_seed=0,
     max_workers=None,
     hide_pbar=False,
+    reduce_output=False,
 ):
     """
     Downscale aggregate load projections to grid based on grid priority column.
@@ -232,6 +233,10 @@ def downscale_total(
     hide_pbar : bool, optional
         If specified as True, hide the progress bar when running bootstraps. Default
         is True, which will show the progress bar.
+    reduce_output : bool, optional
+        If specified as True, reduce the output DataFrame to only include
+        essential columns.
+        Default is False.
 
     Returns
     -------
@@ -366,7 +371,8 @@ def downscale_total(
         drop_cols.append(grid_idx)
     grid_projections_df.drop(columns=drop_cols, inplace=True)
 
-    grid_projections_df = reduce_output(grid_projections_df, load_value_col)
+    if reduce_output:
+        grid_projections_df = reduce_output(grid_projections_df, load_value_col)
 
     return grid_projections_df
 
@@ -389,6 +395,7 @@ def downscale_regional(
     random_seed=0,
     max_workers=None,
     hide_pbar=False,
+    reduce_output=False,
 ):
     """
     Downscale regional load projections to grid based on grid priority column.
@@ -472,6 +479,10 @@ def downscale_regional(
     hide_pbar : bool, optional
         If specified as True, hide the progress bar when running bootstraps. Default
         is True, which will show the progress bar.
+    reduce_output : bool, optional
+        If specified as True, reduce the output DataFrame to only include
+        essential columns.
+        Default is False.
 
     Returns
     -------
@@ -546,13 +557,13 @@ def downscale_regional(
     grid_projections_df = pd.concat(region_results, ignore_index=True)
     if not named_index:
         grid_projections_df.drop(columns=grid_idx, inplace=True)
-
-    grid_projections_df = reduce_output(grid_projections_df, load_value_col)
+    if reduce_output:
+        grid_projections_df = reduce_output(grid_projections_df, load_value_col)
 
     return grid_projections_df
 
 
-def reduce_output(grid_projections_df, load_value_col):
+def _reduce_output(grid_projections_df, load_value_col):
     """
     Reduce output by using centroids and filtering to only points with
     total data center load greater than 0.
@@ -570,8 +581,7 @@ def reduce_output(grid_projections_df, load_value_col):
         Reduced GeoDataFrame with centroids and filtered to only points with
         total load greater than 0.
     """
-    reduced_df = grid_projections_df.copy()
-    reduced_df["geometry"] = reduced_df.geometry.centroid
-    reduced_df.set_geometry("geometry", inplace=True)
-    reduced_df = reduced_df[reduced_df[f"total_{load_value_col}"] > 0]
-    return reduced_df.reset_index(drop=True)
+    grid_projections_df.geometry = grid_projections_df.geometry.centroid
+    return grid_projections_df[
+        grid_projections_df[f"total_{load_value_col}"] > 0
+    ].reset_index(drop=True)

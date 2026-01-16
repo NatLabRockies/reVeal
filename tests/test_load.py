@@ -61,7 +61,8 @@ def test_apportion_load_to_regions_bad_weights(data_dir):
 
 
 @pytest.mark.parametrize("max_site_addition_per_year", [1000, None])
-def test_downscale_total(data_dir, max_site_addition_per_year):
+@pytest.mark.parametrize("reduce_output", [False, True])
+def test_downscale_total(data_dir, max_site_addition_per_year, reduce_output):
     """
     Unit test for downscale_total() - checks that it produced the expected results for
     known inputs.
@@ -92,18 +93,21 @@ def test_downscale_total(data_dir, max_site_addition_per_year):
         priority_power=100,
         n_bootstraps=500,
         random_seed=0,
+        reduce_output=reduce_output,
     )
+
+    suffix = "_centroid" if reduce_output else ""
 
     if max_site_addition_per_year:
         expected_src = (
             data_dir
             / "downscale"
             / "outputs"
-            / "grid_downscaled_total_year_cap_centroid.gpkg"
+            / f"grid_downscaled_total_year_cap{suffix}.gpkg"
         )
     else:
         expected_src = (
-            data_dir / "downscale" / "outputs" / "grid_downscaled_total_centroid.gpkg"
+            data_dir / "downscale" / "outputs" / f"grid_downscaled_total{suffix}.gpkg"
         )
     expected_df = gpd.read_file(expected_src)
 
@@ -111,7 +115,8 @@ def test_downscale_total(data_dir, max_site_addition_per_year):
 
 
 @pytest.mark.parametrize("max_site_addition_per_year", [1000, None])
-def test_downscale_regional(data_dir, max_site_addition_per_year):
+@pytest.mark.parametrize("reduce_output", [False, True])
+def test_downscale_regional(data_dir, max_site_addition_per_year, reduce_output):
     """
     Unit test for downscale_regional() - checks that it produced the expected results
     for known inputs.
@@ -149,6 +154,7 @@ def test_downscale_regional(data_dir, max_site_addition_per_year):
         priority_power=100,
         n_bootstraps=100,
         random_seed=0,
+        reduce_output=reduce_output,
     )
 
     # replace nans with nones to avoid future warnings when we compare to expected_df
@@ -156,19 +162,21 @@ def test_downscale_regional(data_dir, max_site_addition_per_year):
         results_df["zone_group"].isna(), None, results_df["zone_group"]
     )
 
+    suffix = "_centroid" if reduce_output else ""
+
     if max_site_addition_per_year:
         expected_src = (
             data_dir
             / "downscale"
             / "outputs"
-            / "grid_downscaled_regional_year_cap_centroid.gpkg"
+            / f"grid_downscaled_regional_year_cap{suffix}.gpkg"
         )
     else:
         expected_src = (
             data_dir
             / "downscale"
             / "outputs"
-            / "grid_downscaled_regional_centroid.gpkg"
+            / f"grid_downscaled_regional{suffix}.gpkg"
         )
     expected_df = gpd.read_file(expected_src)
 

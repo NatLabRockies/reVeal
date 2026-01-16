@@ -404,10 +404,13 @@ def test_run_scoreweightedgrid_overwrite_output(data_dir, score_wt_grid):
     ).all(), "Unexpected output values"
 
 
-def test_run_totaldownscalegrid(data_dir, downscale_total_grid):
+@pytest.mark.parametrize("reduce_output", [False, True])
+def test_run_totaldownscalegrid(data_dir, downscale_total_grid, reduce_output):
     """
     Test the run() function of DownscaleGrid with total resolution load projections.
     """
+    downscale_total_grid.config.reduce_output = reduce_output
+    suffix = "_centroid" if reduce_output else ""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         results_df = downscale_total_grid.run()
@@ -416,17 +419,20 @@ def test_run_totaldownscalegrid(data_dir, downscale_total_grid):
         data_dir
         / "downscale"
         / "outputs"
-        / "grid_downscaled_total_year_cap_centroid.gpkg"
+        / f"grid_downscaled_total_year_cap{suffix}.gpkg"
     )
     expected_df = gpd.read_file(expected_src)
 
     assert_geodataframe_equal(results_df, expected_df, check_like=True)
 
 
-def test_run_regionaldownscalegrid(data_dir, downscale_regional_grid):
+@pytest.mark.parametrize("reduce_output", [False, True])
+def test_run_regionaldownscalegrid(data_dir, downscale_regional_grid, reduce_output):
     """
     Test the run() function of DownscaleGrid with regional resolution load projections.
     """
+    downscale_regional_grid.config.reduce_output = reduce_output
+    suffix = "_centroid" if reduce_output else ""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         results_df = downscale_regional_grid.run()
@@ -440,18 +446,23 @@ def test_run_regionaldownscalegrid(data_dir, downscale_regional_grid):
         data_dir
         / "downscale"
         / "outputs"
-        / "grid_downscaled_regional_year_cap_centroid.gpkg"
+        / f"grid_downscaled_regional_year_cap{suffix}.gpkg"
     )
     expected_df = gpd.read_file(expected_src)
 
     assert_geodataframe_equal(results_df, expected_df, check_like=True)
 
 
-def test_run_regionaldownscalegrid_weights(data_dir, downscale_region_weights_grid):
+@pytest.mark.parametrize("reduce_output", [False, True])
+def test_run_regionaldownscalegrid_weights(
+    data_dir, downscale_region_weights_grid, reduce_output
+):
     """
     Test the run() function of DownscaleGrid with total resolution load projections
     and region weights.
     """
+    downscale_region_weights_grid.config.reduce_output = reduce_output
+    suffix = "_centroid" if reduce_output else ""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         results_df = downscale_region_weights_grid.run()
@@ -464,7 +475,7 @@ def test_run_regionaldownscalegrid_weights(data_dir, downscale_region_weights_gr
         data_dir
         / "downscale"
         / "outputs"
-        / "grid_downscaled_region_weights_year_cap_centroid.gpkg"
+        / f"grid_downscaled_region_weights_year_cap{suffix}.gpkg"
     )
     expected_df = gpd.read_file(expected_src)
 

@@ -84,6 +84,7 @@ def test_basedownscaleconfig_valid_inputs(
         "priority_power": 3,
         "n_bootstraps": 100,
         "random_seed": 1,
+        "reduce_output": False,
     }
 
     BaseDownscaleConfig(**config)
@@ -170,6 +171,7 @@ def test_basedownscaleconfig_bad_optional_inputs(data_dir, update_parameters):
         "priority_power": 3,
         "n_bootstraps": 100,
         "random_seed": 1,
+        "reduce_output": False,
     }
     config.update(update_parameters)
 
