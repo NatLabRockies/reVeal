@@ -104,6 +104,7 @@ def run(
     n_bootstraps=10_000,
     random_seed=0,
     max_workers=None,
+    reduce_output=False,
     _local=True,
 ):
     """
@@ -218,6 +219,9 @@ def run(
     max_workers : [int, NoneType], optional
         Maximum number of workers to use for multiprocessing when running downscaling.
         By default None, will use all available workers.
+    reduce_output : bool, optional
+        Flag indicating whether to reduce the output to only include centroids of
+        grid cells and the downscaled load attributes. Default is False.
     _local : bool
         Flag indicating whether the code is being run locally or via HPC job
         submissions. NOTE: This is not a user provided parameter - it is determined
@@ -251,6 +255,7 @@ def run(
         priority_power=priority_power,
         n_bootstraps=n_bootstraps,
         random_seed=random_seed,
+        reduce_output=reduce_output,
     )
 
     if max_workers is not None:

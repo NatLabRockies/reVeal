@@ -77,6 +77,7 @@ class BaseDownscaleConfig(BaseGridConfig):
     n_bootstraps: Optional[PositiveInt] = 10_000
     random_seed: Optional[int] = 0
     max_workers: Optional[PositiveInt] = None
+    reduce_output: Optional[bool] = False
 
     @model_validator(mode="after")
     def validate_grid(self):

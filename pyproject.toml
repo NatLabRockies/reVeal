@@ -32,7 +32,7 @@ classifiers = [
 dependencies = [
   "exactextract>=0.3.0,<0.4",
   "geopandas>=1.1.1,<2",
-  "gdal>=3.12.1,<4",
+  "gdal>=3.10.3,<4",
   "libpysal>=4.13.0,<5",
   "nrel-gaps>=0.8.11,<0.9",
   "nrel-rex>=0.4.3,<1",
@@ -119,7 +119,7 @@ publish-pypi = { cmd = "uv publish", depends-on = ["build-wheels"] }
 [tool.pixi.dependencies]
 exactextract = ">=0.3.0,<0.4"
 geopandas = ">=1.1.1,<2"
-gdal = ">=3.12.1,<4"
+gdal = ">=3.10.3,<4"
 libpysal = ">=4.13.0,<5"
 pandas = ">=2.3.3,<3"
 proj-data = ">=1.24,<2"
