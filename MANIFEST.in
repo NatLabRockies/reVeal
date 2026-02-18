@@ -8,5 +8,3 @@ exclude .git/**
 exclude .*
 exclude .vscode/**
 exclude *.git
-exclude pyproject.toml
-
