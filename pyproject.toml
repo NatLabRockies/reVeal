@@ -11,10 +11,10 @@ dynamic = ["version"]
 description = "The reV Extension for Analyzing Large Loads."
 readme = "README.rst"
 authors = [
-  {name = "Michael Gleason", email = "mike.gleason@nrel.gov"},
+  {name = "Michael Gleason", email = "mike.gleason@nlr.gov"},
 ]
 maintainers = [
-  {name = "Pavlo Pinchuk", email = "ppinchuk@nrel.gov"},
+  {name = "Pavlo Pinchuk", email = "ppinchuk@nlr.gov"},
 ]
 license = "BSD-3-Clause"
 keywords = ["reVeal", "NLR", "Load Analysis", "Geospatial", "Site-Suitability"]
@@ -34,8 +34,8 @@ dependencies = [
   "geopandas>=1.1.1,<2",
   "gdal>=3.10.3,<4",
   "libpysal>=4.13.0,<5",
-  "nrel-gaps>=0.8.11,<0.9",
-  "nrel-rex>=0.4.3,<1",
+  "NLR-GAPs>=0.9.1,<1",
+  "NLR-rex>=0.5.0,<1",
   "pandas>=2.3.3,<3",
   "pyarrow>=22.0.0,<23",
   "pydantic>=2.12.5,<3",
@@ -79,9 +79,9 @@ build = [
 reVeal = "reVeal.cli.cli:main"
 
 [project.urls]
-homepage = "https://github.com/NREL/reVeal"
-documentation = "https://nrel.github.io/reVeal/"
-repository = "https://github.com/NREL/reVeal"
+homepage = "https://github.com/NatLabRockies/reVeal"
+documentation = "https://natlabrockies.github.io/reVeal/"
+repository = "https://github.com/NatLabRockies/reVeal"
 
 
 [tool.setuptools.packages]

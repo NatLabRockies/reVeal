@@ -13,7 +13,7 @@ reVeal documentation
 What is reVeal?
 ===============
 
-``reVeal`` (the reV Extension for Analyzing Large Loads) is an open-source geospatial software package for modeling the site-suitability and spatial patterns of deployment of large sources of electricity demand under future scenarios. ``reVeal`` is part of the `reV ecosystem of tools <https://nrel.github.io/reV/#rev-ecosystem>`_.
+``reVeal`` (the reV Extension for Analyzing Large Loads) is an open-source geospatial software package for modeling the site-suitability and spatial patterns of deployment of large sources of electricity demand under future scenarios. ``reVeal`` is part of the `reV ecosystem of tools <https://natlabrockies.github.io/reV/#rev-ecosystem>`_.
 
 How does reVeal work?
 =====================

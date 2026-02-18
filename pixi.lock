@@ -309,8 +309,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b4/63/2ab26e4209773223159b83aa32721b4021ffb08102f8ac7d689c943fded1/multidict-6.7.0-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b2/f2/889ad4b2408f72fe1a4f6a19491177b30ea7bf1a0fd5f17050ca08cfc882/propcache-0.4.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
@@ -625,8 +625,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/15/ee/f524093232007cd7a75c1d132df70f235cfd590a7c9eaccd7ff422ef4ae8/multidict-6.7.0-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/86/bd/47816020d337f4a746edc42fe8d53669965138f39ee117414c7d7a340cfe/propcache-0.4.1-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl
@@ -927,8 +927,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/42/e2/64bb41266427af6642b6b128e8774ed84c11b80a90702c13ac0a86bb10cc/multidict-6.7.0-cp314-cp314-macosx_11_0_arm64.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b2/fa/89a8ef0468d5833a23fff277b143d0573897cf75bd56670a6d28126c7d68/propcache-0.4.1-cp314-cp314-macosx_11_0_arm64.whl
@@ -1215,8 +1215,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/82/16/7ed27b680791b939de138f906d5cf2b4657b0d45ca6f5dd6236fdddafb1a/multidict-6.7.0-cp314-cp314-win_amd64.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0c/2a/a758b47de253636e1b8aef181c0b4f4f204bf0dd964914fb2af90a95b49b/propcache-0.4.1-cp314-cp314-win_amd64.whl
@@ -1533,8 +1533,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b4/63/2ab26e4209773223159b83aa32721b4021ffb08102f8ac7d689c943fded1/multidict-6.7.0-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b2/f2/889ad4b2408f72fe1a4f6a19491177b30ea7bf1a0fd5f17050ca08cfc882/propcache-0.4.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
@@ -1842,8 +1842,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/15/ee/f524093232007cd7a75c1d132df70f235cfd590a7c9eaccd7ff422ef4ae8/multidict-6.7.0-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/86/bd/47816020d337f4a746edc42fe8d53669965138f39ee117414c7d7a340cfe/propcache-0.4.1-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl
@@ -2137,8 +2137,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/42/e2/64bb41266427af6642b6b128e8774ed84c11b80a90702c13ac0a86bb10cc/multidict-6.7.0-cp314-cp314-macosx_11_0_arm64.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b2/fa/89a8ef0468d5833a23fff277b143d0573897cf75bd56670a6d28126c7d68/propcache-0.4.1-cp314-cp314-macosx_11_0_arm64.whl
@@ -2418,8 +2418,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/82/16/7ed27b680791b939de138f906d5cf2b4657b0d45ca6f5dd6236fdddafb1a/multidict-6.7.0-cp314-cp314-win_amd64.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0c/2a/a758b47de253636e1b8aef181c0b4f4f204bf0dd964914fb2af90a95b49b/propcache-0.4.1-cp314-cp314-win_amd64.whl
@@ -2841,10 +2841,10 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/7b/f0/92f2d609d6642b5f30cb50a885d2bf1483301c69d5786286500d15651ef2/lsprotocol-2025.0.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b4/63/2ab26e4209773223159b83aa32721b4021ffb08102f8ac7d689c943fded1/multidict-6.7.0-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/a0/c4/c2971a3ba4c6103a3d10c4b0f24f461ddc027f0f09763220cf35ca1401b3/nest_asyncio-1.6.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/32/55/b754cd51c6011d90ef03e3f06136f1ebd44658b9529dbcf0c15fc0d6a0b7/notebook-7.5.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/f9/33/bd5b9137445ea4b680023eb0469b2bb969d61303dedb2aac6560ff3d14a1/notebook_shim-0.2.4-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d9/ea/74c89d786cf3403bfbf8fb70142fdf501af9517d0bb8c1acce3ee5ab613e/pipreqs-0.4.13-py2.py3-none-any.whl
@@ -3272,10 +3272,10 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/7b/f0/92f2d609d6642b5f30cb50a885d2bf1483301c69d5786286500d15651ef2/lsprotocol-2025.0.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/15/ee/f524093232007cd7a75c1d132df70f235cfd590a7c9eaccd7ff422ef4ae8/multidict-6.7.0-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl
       - pypi: https://files.pythonhosted.org/packages/a0/c4/c2971a3ba4c6103a3d10c4b0f24f461ddc027f0f09763220cf35ca1401b3/nest_asyncio-1.6.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/32/55/b754cd51c6011d90ef03e3f06136f1ebd44658b9529dbcf0c15fc0d6a0b7/notebook-7.5.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/f9/33/bd5b9137445ea4b680023eb0469b2bb969d61303dedb2aac6560ff3d14a1/notebook_shim-0.2.4-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d9/ea/74c89d786cf3403bfbf8fb70142fdf501af9517d0bb8c1acce3ee5ab613e/pipreqs-0.4.13-py2.py3-none-any.whl
@@ -3690,10 +3690,10 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/7b/f0/92f2d609d6642b5f30cb50a885d2bf1483301c69d5786286500d15651ef2/lsprotocol-2025.0.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/42/e2/64bb41266427af6642b6b128e8774ed84c11b80a90702c13ac0a86bb10cc/multidict-6.7.0-cp314-cp314-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/a0/c4/c2971a3ba4c6103a3d10c4b0f24f461ddc027f0f09763220cf35ca1401b3/nest_asyncio-1.6.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/32/55/b754cd51c6011d90ef03e3f06136f1ebd44658b9529dbcf0c15fc0d6a0b7/notebook-7.5.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/f9/33/bd5b9137445ea4b680023eb0469b2bb969d61303dedb2aac6560ff3d14a1/notebook_shim-0.2.4-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d9/ea/74c89d786cf3403bfbf8fb70142fdf501af9517d0bb8c1acce3ee5ab613e/pipreqs-0.4.13-py2.py3-none-any.whl
@@ -4092,10 +4092,10 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/7b/f0/92f2d609d6642b5f30cb50a885d2bf1483301c69d5786286500d15651ef2/lsprotocol-2025.0.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/82/16/7ed27b680791b939de138f906d5cf2b4657b0d45ca6f5dd6236fdddafb1a/multidict-6.7.0-cp314-cp314-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/a0/c4/c2971a3ba4c6103a3d10c4b0f24f461ddc027f0f09763220cf35ca1401b3/nest_asyncio-1.6.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/32/55/b754cd51c6011d90ef03e3f06136f1ebd44658b9529dbcf0c15fc0d6a0b7/notebook-7.5.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/f9/33/bd5b9137445ea4b680023eb0469b2bb969d61303dedb2aac6560ff3d14a1/notebook_shim-0.2.4-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d9/ea/74c89d786cf3403bfbf8fb70142fdf501af9517d0bb8c1acce3ee5ab613e/pipreqs-0.4.13-py2.py3-none-any.whl
@@ -4467,8 +4467,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b4/63/2ab26e4209773223159b83aa32721b4021ffb08102f8ac7d689c943fded1/multidict-6.7.0-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b2/f2/889ad4b2408f72fe1a4f6a19491177b30ea7bf1a0fd5f17050ca08cfc882/propcache-0.4.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
@@ -4815,8 +4815,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/15/ee/f524093232007cd7a75c1d132df70f235cfd590a7c9eaccd7ff422ef4ae8/multidict-6.7.0-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/86/bd/47816020d337f4a746edc42fe8d53669965138f39ee117414c7d7a340cfe/propcache-0.4.1-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl
@@ -5149,8 +5149,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/42/e2/64bb41266427af6642b6b128e8774ed84c11b80a90702c13ac0a86bb10cc/multidict-6.7.0-cp314-cp314-macosx_11_0_arm64.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b2/fa/89a8ef0468d5833a23fff277b143d0573897cf75bd56670a6d28126c7d68/propcache-0.4.1-cp314-cp314-macosx_11_0_arm64.whl
@@ -5470,8 +5470,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/82/16/7ed27b680791b939de138f906d5cf2b4657b0d45ca6f5dd6236fdddafb1a/multidict-6.7.0-cp314-cp314-win_amd64.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0c/2a/a758b47de253636e1b8aef181c0b4f4f204bf0dd964914fb2af90a95b49b/propcache-0.4.1-cp314-cp314-win_amd64.whl
@@ -5813,8 +5813,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b4/63/2ab26e4209773223159b83aa32721b4021ffb08102f8ac7d689c943fded1/multidict-6.7.0-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b2/f2/889ad4b2408f72fe1a4f6a19491177b30ea7bf1a0fd5f17050ca08cfc882/propcache-0.4.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
@@ -6147,8 +6147,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/15/ee/f524093232007cd7a75c1d132df70f235cfd590a7c9eaccd7ff422ef4ae8/multidict-6.7.0-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/86/bd/47816020d337f4a746edc42fe8d53669965138f39ee117414c7d7a340cfe/propcache-0.4.1-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl
@@ -6467,8 +6467,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/42/e2/64bb41266427af6642b6b128e8774ed84c11b80a90702c13ac0a86bb10cc/multidict-6.7.0-cp314-cp314-macosx_11_0_arm64.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b2/fa/89a8ef0468d5833a23fff277b143d0573897cf75bd56670a6d28126c7d68/propcache-0.4.1-cp314-cp314-macosx_11_0_arm64.whl
@@ -6773,8 +6773,8 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/db/bc/83e112abc66cd466c6b83f99118035867cecd41802f8d044638aa78a106e/locket-1.0.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/82/16/7ed27b680791b939de138f906d5cf2b4657b0d45ca6f5dd6236fdddafb1a/multidict-6.7.0-cp314-cp314-win_amd64.whl
-      - pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/62/5e/3a6a3e90f35cea3853c45e5d5fb9b7192ce4384616f932cf7591298ab6e1/numpydoc-1.10.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/71/e7/40fb618334dcdf7c5a316c0e7343c5cd82d3d866edc100d98e29bc945ecd/partd-1.4.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0c/2a/a758b47de253636e1b8aef181c0b4f4f204bf0dd964914fb2af90a95b49b/propcache-0.4.1-cp314-cp314-win_amd64.whl
@@ -16807,17 +16807,61 @@ packages:
   purls: []
   size: 136912
   timestamp: 1758194464430
+- pypi: https://files.pythonhosted.org/packages/6b/9a/0939d63f34f1f98db5adc0a2917b4313c27270192ca5e87ce75cd0238ceb/nlr_gaps-0.9.1-py3-none-any.whl
+  name: nlr-gaps
+  version: 0.9.1
+  sha256: 9cb7cd9ef6e3774aceb6978dc8f8fe0d0bb0f6d93fc8fd8832218aaa80c4a9e7
+  requires_dist:
+  - click>=8.1.8
+  - colorama>=0.4.6
+  - nlr-rex>=0.5.0
+  - numpy>=2.0.2,<3
+  - numpydoc>=1.8.0
+  - pandas>=2.2.3,<3
+  - psutil>=7.0.0
+  - pyjson5>=1.6.4
+  - pyyaml>=6.0.2
+  - setuptools>=80.1.0
+  - sphinx>=7.4.7
+  - sphinx-click>=6.0.0
+  - sphinx-copybutton>=0.5.2
+  - sphinx-tabs>=3.4.1
+  - sphinxcontrib-mermaid>=1.0.0
+  - tabulate>=0.9.0
+  - toml>=0.10.2
+  - ipython>=8.18.1,<9 ; extra == 'dev'
+  - jupyter>=1.1.1,<2 ; extra == 'dev'
+  - pipreqs>=0.4.13,<0.5 ; extra == 'dev'
+  - ruff>=0.14.14,<0.15 ; extra == 'dev'
+  - flaky>=3.8.1,<4 ; extra == 'test'
+  - h5py>=3.13.0,<4 ; extra == 'test'
+  - pytest>=8.3.5,<9 ; extra == 'test'
+  - pytest-cases>=3.8.6,<4 ; extra == 'test'
+  - pytest-cov>=3.0 ; extra == 'test'
+  - pytest-profiling>=1.7.0,<2 ; extra == 'test'
+  - pytest-xdist>=3.0 ; extra == 'test'
+  - snakeviz>=2.2.2,<3 ; extra == 'test'
+  - tox>=4.25.0,<5 ; extra == 'test'
+  - ghp-import>=2.1 ; extra == 'doc'
+  - make>=0.1 ; extra == 'doc'
+  - myst-parser>=3.0.1,<4 ; extra == 'doc'
+  - pandoc>=2.4,<3 ; extra == 'doc'
+  - pydata-sphinx-theme>=0.16.1,<0.17 ; extra == 'doc'
+  - build>=1.2.2,<2 ; extra == 'build'
+  - pkginfo>=1.12.1.2,<2 ; extra == 'build'
+  - twine>=6.1.0,<7 ; extra == 'build'
+  requires_python: '>=3.9'
 - pypi: ./
   name: nlr-reveal
-  version: 0.2.3.dev10+gffa5025d4.d20260115
-  sha256: ad176f20d64c4e68b3915bddc68ee958ca43be1dc75650d585be5d78e4077d03
+  version: 0.2.3.dev4+g45d539dcd.d20260218
+  sha256: 26212ce515e374e7821ab938d03bd7246bc8b6acc7172c7a6716da11f6061a4d
   requires_dist:
   - exactextract>=0.3.0,<0.4
   - geopandas>=1.1.1,<2
   - gdal>=3.10.3,<4
   - libpysal>=4.13.0,<5
-  - nrel-gaps>=0.8.11,<0.9
-  - nrel-rex>=0.4.3,<1
+  - nlr-gaps>=0.9.1,<1
+  - nlr-rex>=0.5.0,<1
   - pandas>=2.3.3,<3
   - pyarrow>=22.0.0,<23
   - pydantic>=2.12.5,<3
@@ -16846,6 +16890,38 @@ packages:
   - build>=1.2.2,<2 ; extra == 'build'
   - pkginfo>=1.12.1.2,<2 ; extra == 'build'
   requires_python: '>=3.12'
+- pypi: https://files.pythonhosted.org/packages/0a/08/b83b94a2b10ee7d27dddff4812a188e6669e520dafccb590613a90fa9d76/nlr_rex-0.5.0-py3-none-any.whl
+  name: nlr-rex
+  version: 0.5.0
+  sha256: 92ac7300f15909233bb5c9b36299eac8d3f935d551bad6f4ebca08268c46386a
+  requires_dist:
+  - click>=8.1.8
+  - fsspec>=2021.9.0
+  - dask>=2024.8.0
+  - h5py>=3.13.0
+  - h5pyd>=0.18.0
+  - numpy>=2.0.2
+  - pandas>=2.2.3,<3
+  - packaging>=24.2
+  - psutil>=7.0.0
+  - pyyaml>=6.0.2
+  - s3fs>=2023.6.0
+  - scikit-learn>=1.6.1
+  - scipy>=1.3
+  - toml>=0.10.2
+  - xarray>=2024.7.0
+  - pytest>=8.3.5,<9 ; extra == 'test'
+  - pytest-timeout>=2.3.1,<3 ; extra == 'test'
+  - flaky>=3.8.1,<4 ; extra == 'test'
+  - nrel-pysam>=7.0.0 ; extra == 'test'
+  - flake8 ; extra == 'dev'
+  - pre-commit ; extra == 'dev'
+  - pylint ; extra == 'dev'
+  - hsds>=0.8.4 ; extra == 'hsds'
+  - build>=1.2.2,<2 ; extra == 'build'
+  - pkginfo>=1.12.1.2,<2 ; extra == 'build'
+  - twine>=6.1.0,<7 ; extra == 'build'
+  requires_python: '>=3.9'
 - pypi: https://files.pythonhosted.org/packages/32/55/b754cd51c6011d90ef03e3f06136f1ebd44658b9529dbcf0c15fc0d6a0b7/notebook-7.5.2-py3-none-any.whl
   name: notebook
   version: 7.5.2
@@ -16886,82 +16962,6 @@ packages:
   - pytest-jupyter ; extra == 'test'
   - pytest-tornasync ; extra == 'test'
   requires_python: '>=3.7'
-- pypi: https://files.pythonhosted.org/packages/b8/28/028777aa1da14d073cadbb87a413ba7e727ca786f64a1c70e0c7d4c13fd8/nrel_gaps-0.8.11-py3-none-any.whl
-  name: nrel-gaps
-  version: 0.8.11
-  sha256: 097d35a65ce3c7f3dc3d49f035f67dea77685a0f9480ff6b25d799079ec88b8e
-  requires_dist:
-  - click>=8.1.8
-  - colorama>=0.4.6
-  - nrel-rex>=0.4.3
-  - numpy>=2.0.2
-  - numpydoc>=1.8.0
-  - pandas>=2.2.3
-  - psutil>=7.0.0
-  - pyjson5>=1.6.4
-  - pyyaml>=6.0.2
-  - sphinx>=7.4.7
-  - sphinx-click>=6.0.0
-  - sphinx-copybutton>=0.5.2
-  - sphinx-tabs>=3.4.1
-  - sphinxcontrib-mermaid>=1.0.0
-  - tabulate>=0.9.0
-  - toml>=0.10.2
-  - ipython>=8.18.1,<9 ; extra == 'dev'
-  - jupyter>=1.1.1,<2 ; extra == 'dev'
-  - pipreqs>=0.4.13,<0.5 ; extra == 'dev'
-  - ruff>=0.8.0,<0.9 ; extra == 'dev'
-  - flaky>=3.8.1,<4 ; extra == 'test'
-  - h5py>=3.13.0,<4 ; extra == 'test'
-  - pytest>=8.3.5,<9 ; extra == 'test'
-  - pytest-cases>=3.8.6,<4 ; extra == 'test'
-  - pytest-cov>=3.0 ; extra == 'test'
-  - pytest-profiling>=1.7.0,<2 ; extra == 'test'
-  - pytest-xdist>=3.0 ; extra == 'test'
-  - snakeviz>=2.2.2,<3 ; extra == 'test'
-  - tox>=4.25.0,<5 ; extra == 'test'
-  - ghp-import>=2.1 ; extra == 'doc'
-  - make>=0.1 ; extra == 'doc'
-  - myst-parser>=3.0.1,<4 ; extra == 'doc'
-  - pandoc>=2.4,<3 ; extra == 'doc'
-  - pydata-sphinx-theme>=0.16.1,<0.17 ; extra == 'doc'
-  - setuptools>=80.1.0,<81 ; extra == 'doc'
-  - build>=1.2.2,<2 ; extra == 'build'
-  - pkginfo>=1.12.1.2,<2 ; extra == 'build'
-  - twine>=6.1.0,<7 ; extra == 'build'
-  requires_python: '>=3.9'
-- pypi: https://files.pythonhosted.org/packages/a0/66/404e1cea32ebd39f519d757b7c0c9e5a71e0ce2bac4a70d2098d3ab248f3/nrel_rex-0.4.3-py3-none-any.whl
-  name: nrel-rex
-  version: 0.4.3
-  sha256: 9e44813f5f022990d3d33a7aab0685522b40c651539b227e29ce9aaa239ac886
-  requires_dist:
-  - click>=8.1.8
-  - fsspec>=2021.9.0
-  - dask>=2024.8.0
-  - h5py>=3.13.0
-  - h5pyd>=0.18.0
-  - numpy>=2.0.2
-  - pandas>=2.2.3
-  - packaging>=24.2
-  - psutil>=7.0.0
-  - pyyaml>=6.0.2
-  - s3fs>=2023.6.0
-  - scikit-learn>=1.6.1
-  - scipy>=1.3
-  - toml>=0.10.2
-  - xarray>=2024.7.0
-  - pytest>=8.3.5,<9 ; extra == 'test'
-  - pytest-timeout>=2.3.1,<3 ; extra == 'test'
-  - flaky>=3.8.1,<4 ; extra == 'test'
-  - nrel-pysam>=7.0.0 ; extra == 'test'
-  - flake8 ; extra == 'dev'
-  - pre-commit ; extra == 'dev'
-  - pylint ; extra == 'dev'
-  - hsds>=0.8.4 ; extra == 'hsds'
-  - build>=1.2.2,<2 ; extra == 'build'
-  - pkginfo>=1.12.1.2,<2 ; extra == 'build'
-  - twine>=6.1.0,<7 ; extra == 'build'
-  requires_python: '>=3.9'
 - conda: https://conda.anaconda.org/conda-forge/linux-64/nspr-4.38-h29cc59b_0.conda
   sha256: e3664264bd936c357523b55c71ed5a30263c6ba278d726a75b1eb112e6fb0b64
   md5: e235d5566c9cc8970eb2798dd4ecf62f

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-cli.normalize module - Sets up normalize command for use with nrel-gaps CLI
+cli.normalize module - Sets up normalize command for use with NLR-gaps CLI
 """
 import logging
 import json
