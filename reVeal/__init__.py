@@ -1,10 +1,9 @@
-"""reVeal"""
-
+"""The reV Extension for Analyzing Large Loads."""
 from pathlib import Path
 
 import pyproj
 
-from reVeal._version import __version__
+from reVeal.version import __version__
 
 # stop to_crs() bugs
 pyproj.network.set_network_enabled(active=False)
