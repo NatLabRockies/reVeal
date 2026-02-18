@@ -114,7 +114,6 @@ python-docs = { cmd = "make html", cwd = "docs" }  #  env = { SPHINXOPTS = "--fa
 
 [tool.pixi.feature.build.tasks]
 build-wheels = { cmd = "uv build --sdist --wheel --out-dir dist/ ." }
-publish-pypi = { cmd = "uv publish", depends-on = ["build-wheels"] }
 
 [tool.pixi.dependencies]
 exactextract = ">=0.3.0,<0.4"

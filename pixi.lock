@@ -16853,8 +16853,8 @@ packages:
   requires_python: '>=3.9'
 - pypi: ./
   name: nlr-reveal
-  version: 0.2.3.dev4+g45d539dcd.d20260218
-  sha256: 26212ce515e374e7821ab938d03bd7246bc8b6acc7172c7a6716da11f6061a4d
+  version: 0.2.3.dev5+gcd9a349c7.d20260218
+  sha256: 2aae1db5c4132f29219a349a14eda01c3f21a6e2f5fe7aa4710b74d075766262
   requires_dist:
   - exactextract>=0.3.0,<0.4
   - geopandas>=1.1.1,<2
