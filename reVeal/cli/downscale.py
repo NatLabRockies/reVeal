@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-cli.downscale module - Sets up downscale command for use with nrel-gaps CLI
+cli.downscale module - Sets up downscale command for use with NLR-GAPs CLI
 """
+
 import logging
 import json
 from pathlib import Path

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""cli.characterize module - Sets up characterize command for use with nrel-gaps CLI"""
+"""cli.characterize module - Sets up characterize command for use with NLR-GAPs CLI"""
 import logging
 import json
 from pathlib import Path

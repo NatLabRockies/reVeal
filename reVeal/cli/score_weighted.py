@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-cli.score_weighted module - Sets up score-attributes command for use with nrel-gaps
+cli.score_weighted module - Sets up score-attributes command for use with NLR-GAPs
 CLI
 """
+
 import logging
 import json
 from pathlib import Path

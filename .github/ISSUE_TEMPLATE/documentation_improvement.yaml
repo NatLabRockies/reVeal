@@ -10,7 +10,7 @@ body:
       options:
         - label: >
             I have checked that the issue still exists on the latest versions of the docs
-            on `main` [here](https://nrel.github.io/reVeal/)
+            on `main` [here](https://natlabrockies.github.io/reVeal/)
           required: true
   - type: textarea
     id: location
@@ -19,8 +19,8 @@ body:
       description: >
         Please provide the location of the documentation, e.g. ``reVeal.maps.map_geodataframe_column`` or the
         URL of the documentation, e.g.
-        "https://nrel.github.io/reVeal/_autosummary/reVeal.maps.html#reVeal.maps.map_geodataframe_column"
-      placeholder: https://nrel.github.io/reVeal/_autosummary/reVeal.maps.html#reVeal.maps.map_geodataframe_column
+        "https://natlabrockies.github.io/reVeal/_autosummary/reVeal.maps.html#reVeal.maps.map_geodataframe_column"
+      placeholder: https://natlabrockies.github.io/reVeal/_autosummary/reVeal.maps.html#reVeal.maps.map_geodataframe_column
     validations:
       required: true
   - type: textarea

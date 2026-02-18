@@ -7,7 +7,7 @@ Installation
 
     .. code-block:: shell
 
-        git clone git@github.com:NREL/reVeal.git
+        git clone git@github.com:NatLabRockies/reVeal.git
 
 2. Move into the local repository
 

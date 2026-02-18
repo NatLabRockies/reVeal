@@ -1,0 +1,11 @@
+exclude tests/**
+exclude examples/**
+exclude docs/**
+exclude build/**
+exclude dist/**
+exclude .github/**
+exclude .git/**
+exclude .*
+exclude .vscode/**
+exclude *.git
+include reVeal/_version.py

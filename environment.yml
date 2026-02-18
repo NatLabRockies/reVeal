@@ -17,5 +17,5 @@ dependencies:
     - libpysal>=4.13.0,<5
     - pip>=25.2
     - pip:
-        - nrel-gaps>=0.8.11,<1
-        - nrel-rex>=0.4.3,<1
+        - NLR-GAPs>=0.9.1,<1
+        - NLR-rex>=0.5.0,<1

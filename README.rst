@@ -25,8 +25,8 @@ reVeal
 .. |Zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.17984036.svg
     :target: https://doi.org/10.5281/zenodo.17984036
 
-.. |Codecov| image:: https://codecov.io/github/NREL/reVeal/graph/badge.svg?token=NXBPNUPT3Y
-    :target: https://codecov.io/github/NREL/reVeal
+.. |Codecov| image:: https://codecov.io/github/NatLabRockies/reVeal/graph/badge.svg?token=NXBPNUPT3Y
+    :target: https://codecov.io/github/NatLabRockies/reVeal
 
 .. inclusion-intro
 
@@ -34,7 +34,7 @@ reVeal
 ``reVeal`` (the reV Extension for Analyzing Large Loads) is an open-source geospatial
 software package for modeling the site-suitability and spatial patterns of deployment
 of large sources of electricity demand under future scenarios. ``reVeal`` is part of
-the `reV ecosystem of tools <https://nrel.github.io/reV/#rev-ecosystem>`_.
+the `reV ecosystem of tools <https://natlabrockies.github.io/reV/#rev-ecosystem>`_.
 
 
 Installing reVeal
@@ -49,10 +49,10 @@ If you would like to install and run reVeal from source, we recommend using `pix
 
 .. code-block:: bash
 
-    git clone git@github.com:NREL/reVeal.git; cd reVeal
+    git clone git@github.com:NatLabRockies/reVeal.git; cd reVeal
     pixi run reVeal
 
-For detailed instructions, see the `installation documentation <https://nrel.github.io/reVeal/misc/installation.html>`_.
+For detailed instructions, see the `installation documentation <https://natlabrockies.github.io/reVeal/misc/installation.html>`_.
 
 
 Quickstart
@@ -66,10 +66,10 @@ Quickstart
 .. This will generate sample map outputs using example reV geothermal supply curve outputs.
 
 For more information on running ``reVeal``, see
-`Usage <https://github.com/NREL/reVeal/blob/main/USAGE.md>`_.
+`Usage <https://github.com/NatLabRockies/reVeal/blob/main/USAGE.md>`_.
 
 
 Development
 ===========
-Please see the `Development Guidelines <https://nrel.github.io/reVeal/dev/index.html>`_
+Please see the `Development Guidelines <https://natlabrockies.github.io/reVeal/dev/index.html>`_
 if you wish to contribute code to this repository.
