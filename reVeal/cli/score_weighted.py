@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-cli.score_weighted module - Sets up score-attributes command for use with NLR-gaps
+cli.score_weighted module - Sets up score-attributes command for use with NLR-GAPs
 CLI
 """
 

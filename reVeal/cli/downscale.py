@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-cli.downscale module - Sets up downscale command for use with NLR-gaps CLI
+cli.downscale module - Sets up downscale command for use with NLR-GAPs CLI
 """
 
 import logging

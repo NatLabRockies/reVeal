@@ -8,3 +8,4 @@ exclude .git/**
 exclude .*
 exclude .vscode/**
 exclude *.git
+include reVeal/_version.py
